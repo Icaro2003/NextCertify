@@ -1,8 +1,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Routes, Route } from 'react-router-dom'; // <--- Importe as rotas
 
-import Login from './pages/FomLogin'; 
-import AlunoDashboard from './pages/AlunoDashboard';
+import Login from './pages/FormLogin'; 
+import AlunoDashboard from './pages/AlunoDashBoard';
 
 function App() {
   return (
