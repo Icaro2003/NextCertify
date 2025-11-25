@@ -1,17 +1,21 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Routes, Route } from 'react-router-dom'; // <--- Importe as rotas
+import { Routes, Route } from 'react-router-dom';
 
-import Login from './pages/FormLogin'; 
-import AlunoDashboard from './pages/AlunoDashBoard';
+import Login from './pages/Login';
+import Cadastro from './pages/Cadastro';
+import RedefinirSenha from './pages/RedefinirSenha';
+import VerificarCodigo from './pages/VerificarCodigo';
+import Contato from './pages/Contato';
 
 function App() {
   return (
     <Routes>
-      {/* Caminho "/" (Raiz) -> Mostra Login */}
+      {/* Rotas Públicas */}
       <Route path="/" element={<Login />} />
-
-      {/* Caminho "/aluno" -> Mostra Dashboard */}
-      <Route path="/aluno" element={<AlunoDashboard />} />
+      <Route path="/cadastro" element={<Cadastro />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+      <Route path="/verificar-codigo" element={<VerificarCodigo />} />
+      <Route path="/contato" element={<Contato />} />
     </Routes>
   );
 }
