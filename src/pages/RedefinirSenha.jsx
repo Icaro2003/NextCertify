@@ -6,8 +6,6 @@ import { MdSupportAgent } from "react-icons/md";
 import InputFlutuante from '../components/InputFlutuante';
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
-import '../css/form-pages.css';
-import '../css/forms.css';
 import ImagemRedefinir from '../img/forgot_password.png';
 
 function RedefinirSenha() {

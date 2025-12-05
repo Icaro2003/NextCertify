@@ -5,8 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import InputFlutuante from '../components/InputFlutuante';
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
-import '../css/form-pages.css';
-import '../css/forms.css';
 import ContactImage from '../img/contact.png';
 
 function Contato() {
@@ -45,7 +43,7 @@ function Contato() {
                             src={ContactImage} 
                             fluid 
                             alt="Ilustração Contato" 
-                            style={{ maxWidth: '90%' }} 
+                            style={{ maxWidth: '86%' }} 
                         />
                     </Col>
 
@@ -100,7 +98,9 @@ function Contato() {
                 fontSize: '1.2rem',
                 fontWeight: '500'
             }}>
-                © 2025 - NextCertify
+                <Container>
+                    <h5 className="mb-0">© 2025 - NextCertify</h5>
+                </Container>
             </footer>
 
         </div>

@@ -4,9 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
-import '../css/form-pages.css';
-import '../css/forms.css';
-
 function VerificarCodigo() {
     const navigate = useNavigate();
     

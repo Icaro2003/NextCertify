@@ -142,7 +142,7 @@ function AvaliacaoTutoria() {
                     </Row>
 
                     <Row className="mb-4">
-                        <Col md={6}>
+                        <Col md={6} className='mb-3'>
                             <Form.Label className="text-primary fw-bold">Você deseja permanecer sendo acompanhado(a) por um tutor no semestre 2025.2?</Form.Label>
                             <div className="mt-2">
                                 <Form.Check
@@ -191,7 +191,7 @@ function AvaliacaoTutoria() {
                     </Row>
 
                     <Row className="mb-4">
-                        <Col md={6}>
+                        <Col md={6} className='mb-3'>
                             <Form.Group>
                                 <Form.Label className="text-primary fw-bold">Quais dificuldades você teve ao longo do semestre durante o acompanhamento?</Form.Label>
                                 <Form.Select id="dificuldade" value={formData.dificuldade} onChange={handleChange} required>
@@ -243,7 +243,7 @@ function AvaliacaoTutoria() {
                     </Row>
 
                     <div className="d-flex justify-content-end">
-                        <Button variant="primary" type="submit" className="px-4 py-2">
+                        <Button variant="primary" type="submit" className="px-4 py-2" style={{borderRadius: '10px'}}>
                             Salvar Preenchimento
                         </Button>
                     </div>
@@ -253,7 +253,7 @@ function AvaliacaoTutoria() {
 
             <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '30px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
                 <Container>
-                    <h5 className="mb-0 fw-bold">© 2025 - NextCertify</h5>
+                    <h5 className="mb-0">© 2025 - NextCertify</h5>
                 </Container>
             </footer>
 

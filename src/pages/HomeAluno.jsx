@@ -122,7 +122,7 @@ function HomeAluno() {
 
             <footer style={{ ...gradientStyle, padding: '30px 0', textAlign: 'center' }} className="mt-auto">
                 <Container>
-                    <h5 className="mb-0 fw-bold">© 2025 - NextCertify</h5>
+                    <h5 className="mb-0">© 2025 - NextCertify</h5>
                 </Container>
             </footer>
 

@@ -1,5 +1,6 @@
 import Button from 'react-bootstrap/Button';
-// import '../css/form-pages.css';
+import '../css/forms.css';
+import '../css/form-pages.css';
 
 function BotaoPrincipal({ texto, type = "button", onClick }) {
   return (

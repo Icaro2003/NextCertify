@@ -12,6 +12,7 @@ import Contato from './pages/Contato';
 import HomeAluno from './pages/HomeAluno';
 import MeusCertificados from './pages/MeusCertificados';
 import AvaliacaoTutoria from './pages/AvaliacaoTutoria';
+import Teste from './pages/teste';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route path="/verificar-codigo" element={<VerificarCodigo />} />
       <Route path="/contato" element={<Contato />} />
+      <Route path="/teste" element={<Teste />} />
 
       <Route path="/aluno" element={<HomeAluno />} />
       <Route path="/meus-certificados" element={<MeusCertificados />} />

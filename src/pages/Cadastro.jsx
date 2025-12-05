@@ -5,8 +5,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import InputFlutuante from '../components/InputFlutuante';
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
-import '../css/form-pages.css';
-import '../css/forms.css';
 import ImagemCadastro from '../img/signin.png'; 
 
 function Cadastro() {

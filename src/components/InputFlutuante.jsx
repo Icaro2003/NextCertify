@@ -1,5 +1,6 @@
 import Form from 'react-bootstrap/Form';
-// import '../css/form-pages.css'; // Importa o CSS para garantir o estilo
+import '../css/forms.css';
+import '../css/form-pages.css';
 
 function InputFlutuante({ type, id, label, value, onChange }) {
   return (

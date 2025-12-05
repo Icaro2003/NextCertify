@@ -2,63 +2,61 @@ import { useState } from 'react';
 import { Container, Row, Col, Form, Image } from "react-bootstrap";
 import { Link, useNavigate } from 'react-router-dom';
 import { MdSupportAgent } from "react-icons/md";
-
-// import '../css/form-pages.css';
-// import '../css/forms.css';
-
 import LoginIgm from '../img/login.png';
-
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
+import login from "../services/authService";
 
 function Login() {
     const navigate = useNavigate();
-    
+
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        console.log("Login efetuado:", { email, senha });
-        alert("Bem-vindo de volta!");
-        
-        navigate('/aluno'); 
+
+        try {
+            const user = await login(email, senha);
+
+            console.log("Login efetuado:", { email, senha });
+            alert(`Bem-vindo de volta ${user.name}`);
+
+            navigate('/aluno');
+        } catch (error) {
+            alert(error.message);
+        }
     };
 
     return (
-        <div style={{ 
-            minHeight: '100vh', 
-            background: 'linear-gradient(135deg, #00C6FF, #0072FF)', 
+        <div className='d-flex align-items-center justify-content-center p-5' style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #00C6FF, #0072FF)',
             backgroundColor: '#00b0c8',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
         }}>
             <Container style={{ maxWidth: '1100px' }}>
                 <Row className="align-items-center">
-                    
-                    <Col lg={6} className="d-none d-lg-flex justify-content-center mb-5 mb-lg-0">
-                        <Image 
-                            src={LoginIgm} 
-                            fluid 
-                            alt="Login Ilustração" 
-                            style={{ width: '100%', maxWidth: '650px' }} 
+
+                    <Col lg={6} className="d-flex justify-content-center align-items-center mb-0">
+                        <Image
+                            src={LoginIgm}
+                            fluid
+                            alt="Login Ilustração"
+                            style={{ width: '100%', maxWidth: '550px' }}
                         />
                     </Col>
 
                     <Col lg={6}>
                         <div className="bg-white p-5 shadow-lg rounded-4">
                             <Form className="w-100" onSubmit={handleSubmit}>
-                                
+
                                 <h1 className="text-primary fw-bold mb-2">Olá,<br />tudo bem?</h1>
                                 <p className="mb-4 text-muted">
-                                    Novo(a) por aqui? <Link to="/cadastro" className="text-decoration-none fw-bold">Inscreva-se!</Link>
+                                    Novo(a) por aqui? <Link to="/cadastro" className="text-decoration-none">Inscreva-se!</Link>
                                 </p>
 
                                 <div className="mb-3">
-                                    <InputFlutuante 
+                                    <InputFlutuante
                                         type="text"
                                         id="usuario-email"
                                         label="Email"
@@ -68,7 +66,7 @@ function Login() {
                                 </div>
 
                                 <div className="mb-3">
-                                    <InputFlutuante 
+                                    <InputFlutuante
                                         type="password"
                                         id="usuario-senha"
                                         label="Senha"
@@ -78,20 +76,21 @@ function Login() {
                                 </div>
 
                                 <div className="d-flex align-items-center justify-content-between mt-3 mb-3">
-                                    <Form.Check 
-                                        type="checkbox" 
-                                        label="Lembrar-me" 
-                                        className="remember" 
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Lembrar-me"
+                                        className="remember"
+                                        id='remember'
                                     />
-                                    <Link to="/redefinir-senha" class="text-decoration-none small">
+                                    <Link to="/redefinir-senha" className="text-decoration-none small">
                                         Esqueceu a senha?
                                     </Link>
                                 </div>
 
                                 <div className="py-2">
-                                    <BotaoPrincipal 
-                                        texto="Fazer Login" 
-                                        type="submit" 
+                                    <BotaoPrincipal
+                                        texto="Fazer Login"
+                                        type="submit"
                                     />
                                 </div>
 
