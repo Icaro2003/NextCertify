@@ -1,0 +1,12 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "João Silva",
+            "matricula": "12389",
+            "email": "joaosilva@email.com",
+            "password": "123456",
+            "role": "aluno"
+        }
+    ]
+}
