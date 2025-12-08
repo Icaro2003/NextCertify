@@ -6,6 +6,7 @@ import InputFlutuante from '../components/InputFlutuante';
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
 import ImagemCadastro from '../img/signin.png'; 
+import { register } from '../services/authService'; 
 
 function Cadastro() {
     const navigate = useNavigate();
@@ -22,7 +23,7 @@ function Cadastro() {
         setDados({ ...dados, [e.target.id]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (dados.senha !== dados.confirmarSenha) {
@@ -30,10 +31,13 @@ function Cadastro() {
             return;
         }
 
-        console.log("Dados do Cadastro:", dados);
-        alert("Cadastro realizado com sucesso! Faça login.");
-        
-        navigate('/');
+        try {
+            await register(dados.nome, dados.matricula, dados.email, dados.senha);
+            alert("Cadastro realizado com sucesso! Faça o login.");
+            navigate('/');
+        } catch (err) {
+            alert(err?.message || "Erro ao cadastrar. Tente novamente.");
+        }
     };
 
     return (

@@ -3,14 +3,33 @@ import { FaBell, FaUserCircle, FaCertificate, FaClipboardCheck, FaPen } from 're
 import { useNavigate } from 'react-router-dom';
 
 import LogoNextCertify from '../img/NextCertify.png';
+import { useState, useEffect } from 'react';
 
 function HomeAluno() {
     const navigate = useNavigate();
+    const [usuario, setUsuario] = useState(null);
+
+    useEffect(() => {
+        //Não apagar por enquanto para realizar os testes
+        // Pegar os dados salvos no LocalStorage
+        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+        if(usuarioLogado) {
+            setUsuario(usuarioLogado);
+        } else {
+            // Vai retornar para login caso não tenha usuário logado
+            navigate('/');
+        }
+    }, [navigate]);
 
     const gradientStyle = {
         background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
         color: 'white'
     };
+
+    if(!usuario){
+        return <div>Carregando...</div>;
+    }
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -37,7 +56,7 @@ function HomeAluno() {
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">João da Silva</span>
+                                <span className="fw-bold text-dark">{usuario.name}</span>
                             </div>
                         </div>
                     </Navbar.Collapse>
@@ -53,9 +72,9 @@ function HomeAluno() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">João da Silva</h2>
-                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">Aluno</Badge>
-                                <p className="mb-0 text-light">Entusiasta de eventos e networking.</p>
+                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
+                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
+                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -69,7 +88,7 @@ function HomeAluno() {
 
             <Container className="my-5 flex-grow-1">
                 <div className="mb-5">
-                    <h1 className="text-primary fw-bold">Seja bem-vindo João</h1>
+                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.name.split(' ')[0]}</h1>
                     <p className="text-muted fs-5">
                         Aqui você pode realizar upload dos seus certificados e fazer a avaliação do projeto de tutoria.
                     </p>
