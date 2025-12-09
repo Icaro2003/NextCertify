@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Navbar, Nav, Form, Image } from 'react-bootstrap';
 import { FaBell, FaUserCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +37,18 @@ function AvaliacaoTutoria() {
         };
     };
 
+    // Vai preencher os campos com usuário logado e data atual
+    useEffect(()=> {
+        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        setFormData(prev => ({
+            ...prev,
+            nome: usuarioLogado?.name || prev.nome,
+            email: usuarioLogado?.email || prev.email,
+            data: prev.data || today
+        }));
+    }, []);
+
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             
@@ -70,7 +82,7 @@ function AvaliacaoTutoria() {
                             <FaBell size={20} className="text-primary" />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">Luiz Marcelo</span>
+                                <span className="fw-bold text-dark">{JSON.parse(localStorage.getItem("usuarioLogado"))?.name || "usuário"}</span>
                             </div>
                         </div>
                     </Navbar.Collapse>
@@ -96,7 +108,9 @@ function AvaliacaoTutoria() {
                                     id="nome"
                                     placeholder="Digite seu nome completo"
                                     value={formData.nome} 
-                                    onChange={handleChange} 
+                                    onChange={handleChange}
+                                    readOnly
+                                    disabled 
                                     required
                                 />
                             </Form.Group>
@@ -109,6 +123,7 @@ function AvaliacaoTutoria() {
                                     id="data"
                                     value={formData.data} 
                                     onChange={handleChange}
+                                    disabled
                                     required 
                                 />
                             </Form.Group>
@@ -125,6 +140,8 @@ function AvaliacaoTutoria() {
                                     placeholder="seu.email@exemplo.com"
                                     value={formData.email} 
                                     onChange={handleChange}
+                                    readOnly
+                                    disabled
                                     required
                                 />
                             </Form.Group>
@@ -198,7 +215,7 @@ function AvaliacaoTutoria() {
                                     <option value="">Selecionar</option>
                                     <option value="Horario">Horário</option>
                                     <option value="Conteudo">Conteúdo</option>
-                                    <option value="Didatica">Didática</option>
+                                    <option value="Didatica">Tutor não entrou em contato.</option>
                                     <option value="Outro">Outro</option>
                                 </Form.Select>
                             </Form.Group>

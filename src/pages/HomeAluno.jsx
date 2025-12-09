@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Button, Navbar, Nav, Badge, Image } from 'react-bootstrap';
-import { FaBell, FaUserCircle, FaCertificate, FaClipboardCheck, FaPen } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaCertificate, FaClipboardCheck, FaPen, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 import LogoNextCertify from '../img/NextCertify.png';
@@ -21,6 +21,11 @@ function HomeAluno() {
             navigate('/');
         }
     }, [navigate]);
+
+    const handleLogout = () => {
+        localStorage.removeItem("usuarioLogado");
+        navigate('/');
+    }
 
     const gradientStyle = {
         background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
@@ -58,6 +63,7 @@ function HomeAluno() {
                                 <FaUserCircle size={32} className="text-primary" />
                                 <span className="fw-bold text-dark">{usuario.name}</span>
                             </div>
+                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
@@ -103,7 +109,7 @@ function HomeAluno() {
                                 </div>
                                 <h3 className="text-primary fw-bold mb-3">Upload de certificados</h3>
                                 <p className="text-muted mb-4">
-                                    Realizar o upload de certificados emitidos pelo Sistema de Eventos da UFC
+                                    Upload de certificados emitidos pelo Sistema de Eventos da UFC
                                 </p>
                                 <Button 
                                     variant="primary" 
