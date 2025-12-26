@@ -13,7 +13,7 @@ function MeusCertificados() {
     const [titulo, setTitulo] = useState('');
     const [certificados, setCertificados] = useState([]);
 
-    
+
     useEffect(() => {
         const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
         if (usuarioLogado) {
@@ -40,7 +40,7 @@ function MeusCertificados() {
         localStorage.setItem(key, JSON.stringify(arr));
     };
 
-   const handleSaveTitle = () => {
+    const handleSaveTitle = () => {
         if (!usuario) {
             alert('Você precisa estar logado para salvar certificados.');
             return;
@@ -69,7 +69,7 @@ function MeusCertificados() {
         if (fileInputRef.current) fileInputRef.current.click();
     };
 
-   const handleFileChange = (e) => {
+    const handleFileChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
@@ -130,7 +130,7 @@ function MeusCertificados() {
                     </Navbar.Brand>
                     <Navbar.Toggle />
                     <Navbar.Collapse>
-                        <Nav className="mx-auto fw-medium">
+                        <Nav className="text-center mx-auto fw-medium">
                             <Nav.Link href="#" className="mx-2 text-dark fw-bold">Certificados</Nav.Link>
                             <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
                         </Nav>
@@ -159,7 +159,7 @@ function MeusCertificados() {
                 <div className="mb-5">
                     <label className="fw-bold text-primary mb-1 ms-1">Título</label>
                     <div className="d-flex gap-2">
-                        <Form.Control type="text" placeholder="Digite o título do Certificado"  value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+                        <Form.Control type="text" placeholder="Digite o título do Certificado" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
                         <Button variant="primary" style={{ minWidth: '100px' }} onClick={handleSaveTitle}>Salvar</Button>
                     </div>
                 </div>

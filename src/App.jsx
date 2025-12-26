@@ -14,6 +14,8 @@ import MeusCertificados from './pages/MeusCertificados';
 import AvaliacaoTutoria from './pages/AvaliacaoTutoria';
 import Teste from './pages/teste';
 import EditarPerfil from './pages/EditarPerfil';
+import HomeBolsista from './pages/HomeBolsista';
+import RegistroAluno from './pages/RegistroAluno';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
       <Route path="/teste" element={<Teste />} />
 
       <Route path="/aluno" element={<HomeAluno />} />
+      <Route path="/bolsista" element={<HomeBolsista />} />
+      <Route path="/registro-aluno" element={<RegistroAluno />} />
       <Route path="/meus-certificados" element={<MeusCertificados />} />
       <Route path="/avaliacao-tutoria" element={<AvaliacaoTutoria />} />
       <Route path="/editar-perfil" element={<EditarPerfil />} />

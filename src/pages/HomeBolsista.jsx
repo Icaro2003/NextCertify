@@ -1,11 +1,11 @@
 import { Container, Row, Col, Card, Button, Navbar, Nav, Badge, Image } from 'react-bootstrap';
-import { FaBell, FaUserCircle, FaCertificate, FaClipboardCheck, FaPen, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-
 import LogoNextCertify from '../img/NextCertify.png';
 import { useState, useEffect } from 'react';
+import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher } from 'react-icons/fa';
+import { FaUserGear, FaBell } from 'react-icons/fa6';
 
-function HomeAluno() {
+function HomeBolsista() {
     const navigate = useNavigate();
     const [usuario, setUsuario] = useState(null);
 
@@ -52,9 +52,9 @@ function HomeAluno() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
-                            <Nav.Link href="/avaliacao-tutoria" className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
+                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
+                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
+                            <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
                             <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
@@ -101,20 +101,20 @@ function HomeAluno() {
                 </div>
 
                 <Row className="g-4">
-                    <Col md={6}>
+                    <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaCertificate size={60} className="text-warning mb-3" />
+                                    <FaUserGraduate size={60} className="text-info mb-3" />
                                 </div>
-                                <h3 className="text-primary fw-bold mb-3">Upload de certificados</h3>
+                                <h3 className="text-primary fw-bold mb-3">Registro de alunos</h3>
                                 <p className="text-muted mb-4">
-                                    Upload de certificados emitidos pelo Sistema de Eventos da UFC
+                                    Verificar alunos cadastrados na tutoria.
                                 </p>
                                 <Button
                                     variant="primary"
                                     className="px-4 py-2 w-100"
-                                    onClick={() => navigate('/meus-certificados')}
+                                    onClick={() => navigate('')}
                                 >
                                     Veja mais
                                 </Button>
@@ -122,20 +122,41 @@ function HomeAluno() {
                         </Card>
                     </Col>
 
-                    <Col md={6}>
+                    <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaClipboardCheck size={60} className="text-success mb-3" />
+                                    <FaChalkboardTeacher size={60} className="text-warning mb-3" />
                                 </div>
-                                <h3 className="text-primary fw-bold mb-3">Avaliação de tutoria</h3>
+                                <h3 className="text-primary fw-bold mb-3">Registro de tutores</h3>
                                 <p className="text-muted mb-4">
-                                    Fazer avaliação mensal da tutoria acadêmica.
+                                    Verificar tutores cadastrados
                                 </p>
                                 <Button
                                     variant="primary"
                                     className="px-4 py-2 w-100"
-                                    onClick={() => navigate('/avaliacao-tutoria')}
+                                    onClick={() => navigate('')}
+                                >
+                                    Veja mais
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+
+                    <Col md={4}>
+                        <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
+                            <Card.Body>
+                                <div className="mb-3">
+                                    <FaUserGear size={60} className="text-secondary mb-3" />
+                                </div>
+                                <h3 className="text-primary fw-bold mb-3">Predefinições</h3>
+                                <p className="text-muted mb-4">
+                                    Definir predefinições que o aluno tem que cumprir na tutoria.
+                                </p>
+                                <Button
+                                    variant="primary"
+                                    className="px-4 py-2 w-100"
+                                    onClick={() => navigate('')}
                                 >
                                     Veja mais
                                 </Button>
@@ -155,4 +176,4 @@ function HomeAluno() {
     );
 }
 
-export default HomeAluno;
+export default HomeBolsista;
