@@ -1,10 +1,10 @@
-import { useState, useEffect} from 'react';
-import { Container, Row, Col, Form, Button, Navbar, Nav, Image} from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Navbar, Nav, Image } from 'react-bootstrap';
 import { FaUserEdit, FaSave, FaTimes, FaBell, FaUserCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
 
-function EditarPerfil(){
+function EditarPerfil() {
     const navigate = useNavigate();
     const [usuario, setUsuario] = useState(null);
     const [form, setForm] = useState({
@@ -16,29 +16,29 @@ function EditarPerfil(){
 
     useEffect(() => {
         const u = JSON.parse(localStorage.getItem('usuarioLogado'));
-        if(!u){
+        if (!u) {
             navigate('/');
             return;
         }
         setUsuario(u);
-         setForm({
+        setForm({
             name: u.name || '',
             matricula: u.matricula || '',
             email: u.email || '',
             password: ''
-         });
+        });
     }, [navigate]);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
-        setForm(prev => ({...prev, [id]: value}));
-    }
+        setForm(prev => ({ ...prev, [id]: value }));
+    };
 
     const handleCancel = () => navigate('/aluno');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if(!form.name.trim() || !form.email.trim()){
+        if (!form.name.trim() || !form.email.trim()) {
             alert("Nome e e-mail são obrigatórios.");
             return;
         }
@@ -46,7 +46,7 @@ function EditarPerfil(){
         // Validação de e-mail único entre os usuários salvos
         const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
         const emailExists = usuarios.some(u => u.email === form.email && u.id !== usuario.id);
-        if(emailExists){
+        if (emailExists) {
             alert('E-mail já cadastrado.');
             return;
         }
@@ -60,8 +60,8 @@ function EditarPerfil(){
             email: form.email,
             ...(form.password ? { password: form.password } : {})
         };
-        
-        if(idx >= 0) {
+
+        if (idx >= 0) {
             updatedUsuarios[idx] = { ...updatedUsuarios[idx], ...updatedUser };
         } else {
             updatedUsuarios.push(updatedUser);
@@ -71,13 +71,13 @@ function EditarPerfil(){
         localStorage.setItem('usuarios', JSON.stringify(updatedUsuarios));
         localStorage.setItem('usuarioLogado', JSON.stringify(updatedUser));
         setUsuario(updatedUser);
-        setForm(prev => ({ ...prev, password: ''}));
+        setForm(prev => ({ ...prev, password: '' }));
 
         alert('Dados atualizados com sucesso.');
         navigate('/aluno');
     };
 
-    if(!usuario) return <div>Carregando...</div>
+    if (!usuario) return <div>Carregando...</div>;
 
 
     return (
@@ -89,7 +89,7 @@ function EditarPerfil(){
                     </Navbar.Brand>
                     <Navbar.Toggle />
                     <Navbar.Collapse>
-                        <Nav className="mx-auto fw-medium">
+                        <Nav className="text-center mx-auto fw-medium">
                             <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
                             <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
@@ -105,7 +105,7 @@ function EditarPerfil(){
                 </Container>
             </Navbar>
 
-             <Container className="my-5 flex-grow-1">
+            <Container className="my-5 flex-grow-1">
                 <Row className="justify-content-center">
                     <Col lg={8}>
                         <div className="bg-white p-4 rounded-4 shadow-sm">
@@ -142,7 +142,7 @@ function EditarPerfil(){
                 </Row>
             </Container>
 
-             <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
+            <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
                 <Container>
                     <small>© 2025 - NextCertify</small>
                 </Container>

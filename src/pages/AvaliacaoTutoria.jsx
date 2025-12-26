@@ -38,7 +38,7 @@ function AvaliacaoTutoria() {
     };
 
     // Vai preencher os campos com usuário logado e data atual
-    useEffect(()=> {
+    useEffect(() => {
         const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
         const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
         setFormData(prev => ({
@@ -51,7 +51,7 @@ function AvaliacaoTutoria() {
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            
+
             <style>{`
                 .range-com-fill::-webkit-slider-runnable-track {
                     background: transparent !important; 
@@ -68,12 +68,12 @@ function AvaliacaoTutoria() {
 
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
-                    <Navbar.Brand href="#" onClick={() => navigate('/aluno')} style={{cursor: 'pointer'}}>
+                    <Navbar.Brand href="#" onClick={() => navigate('/aluno')} style={{ cursor: 'pointer' }}>
                         <Image src={LogoNextCertify} alt="Logo" height="40" />
                     </Navbar.Brand>
                     <Navbar.Toggle />
                     <Navbar.Collapse>
-                        <Nav className="mx-auto fw-medium">
+                        <Nav className="text-center mx-auto fw-medium">
                             <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
                             <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
@@ -93,7 +93,7 @@ function AvaliacaoTutoria() {
                 <div className="mb-4">
                     <h2 className="text-primary fw-bold">Avaliação do Projeto de Tutoria</h2>
                     <p className="text-muted">
-                        Prezado estudante,<br/>
+                        Prezado estudante,<br />
                         Nós do Projeto de Tutoria Acadêmica gostaríamos de saber um pouco sobre como foi a sua experiência no projeto para que possamos melhorá-lo cada vez mais.
                     </p>
                 </div>
@@ -103,14 +103,14 @@ function AvaliacaoTutoria() {
                         <Col md={6}>
                             <Form.Group className="mb-3">
                                 <Form.Label className="text-primary fw-bold">Aluno(a)</Form.Label>
-                                <Form.Control 
-                                    type="text" 
+                                <Form.Control
+                                    type="text"
                                     id="nome"
                                     placeholder="Digite seu nome completo"
-                                    value={formData.nome} 
+                                    value={formData.nome}
                                     onChange={handleChange}
                                     readOnly
-                                    disabled 
+                                    disabled
                                     required
                                 />
                             </Form.Group>
@@ -118,13 +118,13 @@ function AvaliacaoTutoria() {
                         <Col md={6}>
                             <Form.Group className="mb-3">
                                 <Form.Label className="text-primary fw-bold">Data</Form.Label>
-                                <Form.Control 
-                                    type="date" 
+                                <Form.Control
+                                    type="date"
                                     id="data"
-                                    value={formData.data} 
+                                    value={formData.data}
                                     onChange={handleChange}
                                     disabled
-                                    required 
+                                    required
                                 />
                             </Form.Group>
                         </Col>
@@ -134,11 +134,11 @@ function AvaliacaoTutoria() {
                         <Col md={6}>
                             <Form.Group className="mb-3">
                                 <Form.Label className="text-primary fw-bold">E-mail</Form.Label>
-                                <Form.Control 
-                                    type="email" 
+                                <Form.Control
+                                    type="email"
                                     id="email"
                                     placeholder="seu.email@exemplo.com"
-                                    value={formData.email} 
+                                    value={formData.email}
                                     onChange={handleChange}
                                     readOnly
                                     disabled
@@ -170,7 +170,7 @@ function AvaliacaoTutoria() {
                                     id="sim"
                                     value="sim"
                                     checked={formData.permanecer === 'sim'}
-                                    onChange={(e) => setFormData({...formData, permanecer: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, permanecer: e.target.value })}
                                 />
                                 <Form.Check
                                     inline
@@ -180,7 +180,7 @@ function AvaliacaoTutoria() {
                                     id="nao"
                                     value="nao"
                                     checked={formData.permanecer === 'nao'}
-                                    onChange={(e) => setFormData({...formData, permanecer: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, permanecer: e.target.value })}
                                 />
                             </div>
                         </Col>
@@ -189,17 +189,17 @@ function AvaliacaoTutoria() {
                                 <Form.Label className="text-primary fw-bold mb-0">Como foi a sua experiência?</Form.Label>
                                 <span className="badge bg-primary fs-6">{formData.experiencia}%</span>
                             </div>
-                            
-                            <Form.Range 
-                                id="experiencia" 
-                                min="0" 
-                                max="100" 
-                                value={formData.experiencia} 
+
+                            <Form.Range
+                                id="experiencia"
+                                min="0"
+                                max="100"
+                                value={formData.experiencia}
                                 onChange={handleChange}
-                                className="range-com-fill" 
+                                className="range-com-fill"
                                 style={getBackgroundStyle(formData.experiencia)}
                             />
-                            
+
                             <div className="d-flex justify-content-between text-muted small mt-1">
                                 <span>0% Ruim</span>
                                 <span>Ótimo 100%</span>
@@ -226,12 +226,12 @@ function AvaliacaoTutoria() {
                                 <span className="badge bg-primary fs-6">{formData.avaliacaoTutor}%</span>
                             </div>
 
-                            <Form.Range 
-                                id="avaliacaoTutor" 
-                                min="0" 
-                                max="100" 
-                                value={formData.avaliacaoTutor} 
-                                onChange={handleChange} 
+                            <Form.Range
+                                id="avaliacaoTutor"
+                                min="0"
+                                max="100"
+                                value={formData.avaliacaoTutor}
+                                onChange={handleChange}
                                 className="range-com-fill"
                                 style={getBackgroundStyle(formData.avaliacaoTutor)}
                             />
@@ -247,10 +247,10 @@ function AvaliacaoTutoria() {
                         <Col>
                             <Form.Group>
                                 <Form.Label className="text-primary fw-bold">Descrição da dificuldade</Form.Label>
-                                <Form.Control 
-                                    as="textarea" 
+                                <Form.Control
+                                    as="textarea"
                                     id="descricao"
-                                    rows={5} 
+                                    rows={5}
                                     style={{ resize: 'none' }}
                                     value={formData.descricao}
                                     onChange={handleChange}
@@ -260,7 +260,7 @@ function AvaliacaoTutoria() {
                     </Row>
 
                     <div className="d-flex justify-content-end">
-                        <Button variant="primary" type="submit" className="px-4 py-2" style={{borderRadius: '10px'}}>
+                        <Button variant="primary" type="submit" className="px-4 py-2" style={{ borderRadius: '10px' }}>
                             Salvar Preenchimento
                         </Button>
                     </div>
