@@ -1,0 +1,61 @@
+{
+  "metricas": [
+    { "label": "Tutorandos Ativos", "val": "128", "icon": "👨‍🎓" },
+    { "label": "Tutores", "val": "12", "icon": "👩‍🏫" },
+    { "label": "Experiência da Tutoria", "val": "70%", "icon": "😊" },
+    { "label": "Encontros Realizados", "val": "20", "icon": "📅" },
+    { "label": "Certificados", "val": "3", "icon": "🏅" }
+  ],
+
+  "graficos": [
+    { "name": "Jan", "online": 7, "presencial": 4, "boa": 5, "ruim": 1 },
+    { "name": "Fev", "online": 8, "presencial": 5, "boa": 10, "ruim": 3 },
+    { "name": "Mar", "online": 9, "presencial": 6, "boa": 20, "ruim": 10 },
+    { "name": "Abr", "online": 7, "presencial": 5, "boa": 15, "ruim": 8 },
+    { "name": "Mai", "online": 8, "presencial": 6, "boa": 22, "ruim": 6 },
+    { "name": "Jun", "online": 9, "presencial": 5, "boa": 18, "ruim": 5 },
+    { "name": "Jul", "online": 7, "presencial": 4, "boa": 20, "ruim": 4 }
+  ],
+
+  "horasCertificado": [
+    { "name": "Jan", "estudos": 6, "eventos": 8, "monitoria": 5 },
+    { "name": "Fev", "estudos": 15, "eventos": 11, "monitoria": 6 },
+    { "name": "Mar", "estudos": 23, "eventos": 14, "monitoria": 7 },
+    { "name": "Abr", "estudos": 15, "eventos": 10, "monitoria": 5 },
+    { "name": "Mai", "estudos": 18, "eventos": 8, "monitoria": 6 },
+    { "name": "Jun", "estudos": 13, "eventos": 11, "monitoria": 5 },
+    { "name": "Jul", "estudos": 26, "eventos": 13, "monitoria": 6 }
+  ],
+
+  "dificuldadesGrafico": [
+    { "name": "Jan", "sim": 2, "nao": 1 },
+    { "name": "Fev", "sim": 1, "nao": 2 },
+    { "name": "Mar", "sim": 3, "nao": 1 },
+    { "name": "Abr", "sim": 2, "nao": 2 },
+    { "name": "Mai", "sim": 3, "nao": 1 },
+    { "name": "Jun", "sim": 2, "nao": 2 },
+    { "name": "Jul", "sim": 1, "nao": 2 }
+  ],
+
+
+"tutores": [
+    { "id": "PRE2201", "nome": "John Smith", "encontros": 3, "semestre": "2022.1" },
+    { "id": "PRE1242", "nome": "Jolie Hoskins", "encontros": 2, "semestre": "2023.1" },
+    { "id": "PRE1623", "nome": "Pennington Joy", "encontros": 5, "semestre": "2024.1" },
+    { "id": "PRE2514", "nome": "Millie Marsden", "encontros": 1, "semestre": "2022.1" }
+  ],
+
+  "tutorandos": [
+    { "id": "PRE2209", "nome": "John Smith", "encontros": 3, "semestre": "2025.1" },
+    { "id": "PRE1245", "nome": "Jolie Hoskins", "encontros": 2, "semestre": "2025.1" },
+    { "id": "PRE1625", "nome": "Pennington Joy", "encontros": 5, "semestre": "2025.1" },
+    { "id": "PRE2516", "nome": "Millie Marsden", "encontros": 1, "semestre": "2025.1" }
+  ],
+
+  "dificuldades": [
+    { "icon": "📚", "titulo": "Dificuldades Acadêmicas", "desc": "Conteúdos específicos", "perc": "20%" },
+    { "icon": "🏫", "titulo": "Funcionamento da Universidade", "desc": "Processos internos", "perc": "40%" },
+    { "icon": "🔐", "titulo": "Acesso a serviços", "desc": "Portais e sistemas", "perc": "5%" },
+    { "icon": "❓", "titulo": "Outras dificuldades", "desc": "Diversos", "perc": "10%" }
+  ]
+}

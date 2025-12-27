@@ -17,6 +17,10 @@ import EditarPerfil from './pages/EditarPerfil';
 import HomeBolsista from './pages/HomeBolsista';
 import RegistroAluno from './pages/RegistroAluno';
 
+// Telas do Coordenador
+import HomeCoordenador from './pages/HomeCoordenador';
+import RelatoriosCoordenador from './pages/RelatoriosCoordenador';
+
 function App() {
   return (
     <Routes>
@@ -33,6 +37,9 @@ function App() {
       <Route path="/meus-certificados" element={<MeusCertificados />} />
       <Route path="/avaliacao-tutoria" element={<AvaliacaoTutoria />} />
       <Route path="/editar-perfil" element={<EditarPerfil />} />
+
+      <Route path="/coordenador" element={<HomeCoordenador />} />
+      <Route path="/relatorios-coordenador" element={<RelatoriosCoordenador />} />
     </Routes>
   );
 }
