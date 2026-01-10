@@ -17,33 +17,46 @@ function Cadastro() {
     const { show, message, variant, alertKey, handleAlert } = useAlert();
 
     const [dados, setDados] = useState({
-        nome: '',
-        matricula: '',
-        curso: '',
-        email: '',
-        senha: '',
-        confirmarSenha: ''
+        nome: "",
+        email: "",
+        senha: "",
+        confirmarSenha: "",
+        matricula: "",
+        cpf: "",
     });
 
     const handleChange = (e) => {
         setDados({ ...dados, [e.target.id]: e.target.value });
     };
 
+    const registerUser = async () => {
+        await fetch("http://localhost:3000/api/users", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                nome: dados.nome,
+                email: dados.email,
+                senha: dados.senha,
+                matricula: dados.matricula,
+                cpf: dados.cpf,
+                status: "ATIVO"
+            })
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(data.message || "Erro na requisição");
+                }
+
+                return response.json();
+            })
+            .catch((error) => handleAlert(error));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (dados.senha !== dados.confirmarSenha) {
-            handleAlert("As senhas não coincidem!");
-            return;
-        }
-
-        try {
-            await register(dados.nome, dados.matricula, dados.curso, dados.email, dados.senha);
-            alert("Cadastro realizado com sucesso! Faça o login.");
-            navigate('/');
-        } catch (err) {
-            handleAlert(err?.message || "Erro ao cadastrar. Tente novamente.");
-        }
+        registerUser();
     };
 
     return (
@@ -91,7 +104,7 @@ function Cadastro() {
                                     />
                                 </div>
 
-                                <Form.Select
+                                {/* <Form.Select
                                     required
                                     id='curso'
                                     className='mb-3 label-float'
@@ -113,12 +126,19 @@ function Cadastro() {
                                     <option value="Engenharia de Minas">Engenharia de Minas</option>
                                     <option value="Sistemas de Informação">Sistemas de Informação</option>
                                     <option value="nenhum">Nenhum</option>
-                                </Form.Select>
+                                </Form.Select> */}
 
                                 <div className="mb-3">
                                     <InputFlutuante
                                         type="email" id="email" label="Email"
                                         value={dados.email} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <InputFlutuante
+                                        type="text" id="cpf" label="CPF"
+                                        value={dados.cpf} onChange={handleChange}
                                     />
                                 </div>
 
@@ -154,6 +174,6 @@ function Cadastro() {
             </Container>
         </div>
     );
-}
+};
 
 export default Cadastro;
