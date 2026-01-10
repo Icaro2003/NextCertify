@@ -46,17 +46,24 @@ function Cadastro() {
         })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(data.message || "Erro na requisição");
+                    throw new Error(response.statusText || "Erro na requisição POST");
                 }
 
                 return response.json();
             })
-            .catch((error) => handleAlert(error));
+            .catch((error) => console.log(error));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        registerUser();
+
+        try {
+            registerUser();
+            alert("Cadastro realizado com sucesso! Faça o login.");
+            navigate("/");
+        } catch (error) {
+            handleAlert(error?.message || "Erro ao cadastrar. Tente novamente.");
+        }
     };
 
     return (

@@ -5,7 +5,6 @@ import { MdSupportAgent } from "react-icons/md";
 import LoginIgm from '../img/login.png';
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
-import login from "../services/authService";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
 
@@ -15,38 +14,40 @@ function Login() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const { show, message, variant, alertKey, handleAlert } = useAlert();
-    //const [loading, setLoading] = useState(false);
+
+    const login = async () => {
+        await fetch("http://localhost:3000/api/users/login", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                senha: senha
+            })
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(response.statusText || "Erro na requisição POST");
+                }
+
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem("token", data.token);
+            })
+            .catch((error) => console.log(error));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-       // setLoading(true);
 
         try {
-            const user = await login(email, senha);
-            alert(`Bem-vindo de volta ${user.name}`);
-
-            //Lógica para redirecionamento dos usuários baseados nos ROLEs
-            switch(user.role){
-                case 'coordenador':
-                    navigate('/coordenador');
-                    break;
-                case 'bolsista':
-                    navigate('/bolsista');
-                    break;
-                case 'tutor':
-                    navigate('/home-tutor');
-                    break;
-                case 'aluno':
-                    navigate('/aluno');
-                    break;
-                default:
-                    navigate('/');
-            }
+            login();
+            // navigate("/aluno");
         } catch (error) {
-            handleAlert(error.message);
-        } //finally {
-           // setLoading(false);
-       // }
+            handleAlert(error?.message || "Usuário não encontrado!");
+        }
     };
 
     return (
