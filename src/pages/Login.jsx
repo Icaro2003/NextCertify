@@ -7,6 +7,7 @@ import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
+import { jwtDecode } from 'jwt-decode';
 
 function Login() {
     const navigate = useNavigate();
@@ -16,35 +17,51 @@ function Login() {
     const { show, message, variant, alertKey, handleAlert } = useAlert();
 
     const login = async () => {
-        await fetch("http://localhost:3000/api/users/login", {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                senha: senha
-            })
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(response.statusText || "Erro na requisição POST");
-                }
+        const response = await fetch("http://localhost:3000/api/users/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, senha }),
+        });
 
-                return response.json();
-            })
-            .then(data => {
-                localStorage.setItem("token", data.token);
-            })
-            .catch((error) => console.log(error));
+        if (!response.ok) {
+            throw new Error(response.statusText || "Usuário ou senha inválidos");
+        }
+
+        const data = await response.json();
+
+        localStorage.setItem("token", data.token);
+
+        // Não faz navigate com decoded
+        const decoded = jwtDecode(data.token);
+        console.log(decoded);
+        
+        navigateRole(decoded.role);
     };
+
+    const navigateRole = (role) => {
+        const roleRoutes = {
+            scholarship_holder: "/bolsista",
+            student: "/aluno",
+            tutor: "/home-tutor",
+            coordinator: "/coordenador",
+        };
+
+        const route = roleRoutes[role];
+
+        if (!route) {
+            console.log(`Perfil não definido! ${role}`);
+            return;
+        }
+
+        navigate(route)
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            login();
-            // navigate("/aluno");
+            await login();
         } catch (error) {
             handleAlert(error?.message || "Usuário não encontrado!");
         }

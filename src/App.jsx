@@ -42,7 +42,7 @@ function App() {
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route path="/verificar-codigo" element={<VerificarCodigo />} />
       <Route path="/contato" element={<Contato />} />
-      <Route path="/teste" element={<Teste />} />
+      <Route path="/teste" element={<h1>FUNCIONOU</h1>} />
 
       <Route path="/aluno" element={<HomeAluno />} />
       
