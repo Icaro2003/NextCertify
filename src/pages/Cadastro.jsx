@@ -6,10 +6,12 @@ import InputFlutuante from '../components/InputFlutuante';
 import BotaoPrincipal from '../components/BotaoPrincipal';
 
 import ImagemCadastro from '../img/signin.png';
-import { register } from '../services/authService';
 
 import AlertBox from '../components/AlertBox';
 import useAlert from '../hooks/useAlert';
+
+import '../css/forms.css';
+import '../css/form-pages.css';
 
 function Cadastro() {
     const navigate = useNavigate();
@@ -17,12 +19,24 @@ function Cadastro() {
     const { show, message, variant, alertKey, handleAlert } = useAlert();
 
     const [dados, setDados] = useState({
+        // Dados do usuário
         nome: "",
         email: "",
         senha: "",
         confirmarSenha: "",
         matricula: "",
         cpf: "",
+
+        perfil: "",
+
+        // Bolsista / Aluno
+        anoIngresso: "",
+        curso: "",
+
+        // Tutor / Coordenador
+        area: "",
+        nivel: "",
+        capacidadeMaxima: ""
     });
 
     const handleChange = (e) => {
@@ -30,19 +44,43 @@ function Cadastro() {
     };
 
     const registerUser = async () => {
+        const payload = {
+            nome: dados.nome,
+            email: dados.email,
+            senha: dados.senha,
+            matricula: dados.matricula,
+            cpf: dados.cpf,
+            status: "ATIVO"
+        };
+
+        if (dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") {
+            payload.bolsista = {
+                anoIngresso: Number(dados.anoIngresso),
+                curso: dados.curso
+            };
+        }
+
+        if (dados.perfil === "TUTOR") {
+            payload.tutor = {
+                area: dados.area,
+                nivel: dados.nivel,
+                capacidadeMaxima: Number(dados.capacidadeMaxima)
+            };
+        }
+
+        if (dados.perfil === "COORDENADOR") {
+            payload.coordenador = {
+                area: dados.area,
+                nivel: dados.nivel
+            };
+        }
+
         await fetch("http://localhost:3000/api/users", {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                nome: dados.nome,
-                email: dados.email,
-                senha: dados.senha,
-                matricula: dados.matricula,
-                cpf: dados.cpf,
-                status: "ATIVO"
-            })
+            body: JSON.stringify(payload)
         })
             .then((response) => {
                 if (!response.ok) {
@@ -79,17 +117,17 @@ function Cadastro() {
             <Container style={{ maxWidth: '1100px' }}>
                 <Row className="align-items-center">
 
-                    <Col lg={6} className="d-none d-lg-flex justify-content-center mb-5 mb-lg-0">
+                    <Col lg={6} className="d-flex justify-content-center mb-5 mb-lg-0">
                         <Image
                             src={ImagemCadastro}
                             fluid
                             alt="Ilustração Cadastro"
-                            style={{ width: '100%', maxWidth: '650px' }}
+                            style={{ width: '100%', maxWidth: '550px' }}
                         />
                     </Col>
 
                     <Col lg={6}>
-                        <div className="bg-white p-5 shadow-lg rounded-4">
+                        <div className="bg-white px-5 py-3 shadow-lg rounded-4">
                             <Form className="w-100" onSubmit={handleSubmit}>
 
                                 <h2 className="text-primary fw-bold mb-2" style={{ fontSize: '2.5rem' }}>Cadastre-se</h2>
@@ -111,30 +149,6 @@ function Cadastro() {
                                     />
                                 </div>
 
-                                {/* <Form.Select
-                                    required
-                                    id='curso'
-                                    className='mb-3 label-float'
-                                    value={dados.curso}
-                                    onChange={handleChange}
-                                    style={
-                                        {
-                                            border: '1px solid #8C8B8B',
-                                            borderRadius: '20px'
-                                        }
-                                    }>
-                                    <option value="">Selecione o curso</option>
-                                    <option value="Ciência da Computação">Ciência da Computação</option>
-                                    <option value="Engenharia Ambiental">Engenharia Ambiental</option>
-                                    <option value="Engenharia Ambiental e Sanitária">
-                                        Engenharia Ambiental e Sanitária
-                                    </option>
-                                    <option value="Engenharia Civil">Engenharia Civil</option>
-                                    <option value="Engenharia de Minas">Engenharia de Minas</option>
-                                    <option value="Sistemas de Informação">Sistemas de Informação</option>
-                                    <option value="nenhum">Nenhum</option>
-                                </Form.Select> */}
-
                                 <div className="mb-3">
                                     <InputFlutuante
                                         type="email" id="email" label="Email"
@@ -149,6 +163,80 @@ function Cadastro() {
                                     />
                                 </div>
 
+                                <Form.Select
+                                    required
+                                    id='perfil'
+                                    className='mb-3 label-float'
+                                    value={dados.perfil}
+                                    onChange={handleChange}
+                                    style={
+                                        {
+                                            border: '1px solid #8C8B8B',
+                                            borderRadius: '20px'
+                                        }
+                                    }>
+                                    <option value="">Selecione o perfil</option>
+                                    <option value="ALUNO">Aluno</option>
+                                    <option value="BOLSISTA">Bolsista</option>
+                                    <option value="TUTOR">Tutor</option>
+                                    <option value="COORDENADOR">Coordenador</option>
+                                </Form.Select>
+
+                                {(dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") &&
+                                    <div className="mb-3">
+                                        <InputFlutuante
+                                            type="number" id="anoIngresso" label="Ano de ingresso"
+                                            value={dados.anoIngresso} onChange={handleChange}
+                                        />
+
+                                        <Form.Select
+                                            required
+                                            id='curso'
+                                            className='mb-3 label-float'
+                                            value={dados.curso}
+                                            onChange={handleChange}
+                                            style={
+                                                {
+                                                    border: '1px solid #8C8B8B',
+                                                    borderRadius: '20px'
+                                                }
+                                            }>
+                                            <option value="">Selecione o curso</option>
+                                            <option value="Ciência da Computação">Ciência da Computação</option>
+                                            <option value="Engenharia Ambiental">Engenharia Ambiental</option>
+                                            <option value="Engenharia Ambiental e Sanitária">
+                                                Engenharia Ambiental e Sanitária
+                                            </option>
+                                            <option value="Engenharia Civil">Engenharia Civil</option>
+                                            <option value="Engenharia de Minas">Engenharia de Minas</option>
+                                            <option value="Sistemas de Informação">Sistemas de Informação</option>
+                                        </Form.Select>
+                                    </div>
+                                }
+
+                                {(dados.perfil === "TUTOR" || dados.perfil === "COORDENADOR") &&
+                                    <div className="mb-3">
+                                        <InputFlutuante
+                                            type="text" id="area" label="Área"
+                                            value={dados.area} onChange={handleChange}
+                                        />
+
+                                        <InputFlutuante
+                                            type="text" id="nivel" label="Nível"
+                                            value={dados.nivel} onChange={handleChange}
+                                        />
+                                    </div>
+                                }
+
+                                {(dados.perfil === "TUTOR") &&
+                                    <div className="mb-3">
+                                        <InputFlutuante
+                                            type="number" id="capacidadeMaxima" label="Capacidade Máxima"
+                                            value={dados.capacidadeMaxima} onChange={handleChange}
+                                        />
+                                    </div>
+                                }
+
                                 <div className="mb-3">
                                     <InputFlutuante
                                         type="password" id="senha" label="Senha"
@@ -156,7 +244,7 @@ function Cadastro() {
                                     />
                                 </div>
 
-                                <div className="mb-4">
+                                <div className="mb-3">
                                     <InputFlutuante
                                         type="password" id="confirmarSenha" label="Confirmar sua senha"
                                         value={dados.confirmarSenha} onChange={handleChange}
