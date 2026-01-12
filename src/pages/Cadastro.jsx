@@ -184,10 +184,19 @@ function Cadastro() {
 
                                 {(dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") &&
                                     <div className="mb-3">
-                                        <InputFlutuante
-                                            type="number" id="anoIngresso" label="Ano de ingresso"
-                                            value={dados.anoIngresso} onChange={handleChange}
-                                        />
+                                        <div className="label-float mt-3">
+                                            <Form.Control
+                                                type='number'
+                                                min={0}
+                                                max={new Date().getFullYear()}
+                                                id='anoIngresso'
+                                                placeholder=" "
+                                                required
+                                                value={dados.anoIngresso}
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor='anoIngresso'>Ano de ingresso</label>
+                                        </div>
 
                                         <Form.Select
                                             required
@@ -230,10 +239,18 @@ function Cadastro() {
 
                                 {(dados.perfil === "TUTOR") &&
                                     <div className="mb-3">
-                                        <InputFlutuante
-                                            type="number" id="capacidadeMaxima" label="Capacidade Máxima"
-                                            value={dados.capacidadeMaxima} onChange={handleChange}
-                                        />
+                                        <div className="label-float mt-3">
+                                            <Form.Control
+                                                type='number'
+                                                min={0}
+                                                id='capacidadeMaxima'
+                                                placeholder=" "
+                                                required
+                                                value={dados.capacidadeMaxima}
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor='capacidadeMaxima'>Capacidade Máxima</label>
+                                        </div>
                                     </div>
                                 }
 
