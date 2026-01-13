@@ -75,28 +75,30 @@ function Cadastro() {
             };
         }
 
-        await fetch("http://localhost:3000/api/users", {
+        localStorage.setItem("perfil", dados.perfil);
+
+        const response = await fetch("http://localhost:3000/api/users", {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(payload)
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(response.statusText || "Erro na requisição POST");
-                }
+        });
 
-                return response.json();
-            })
-            .catch((error) => console.log(error));
+        if (!response.ok) {
+            throw new Error(response.statusText || "Erro na requisição POST");
+        }
+
+        const data = await response.json();
+
+        return data;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            registerUser();
+            await registerUser();
             alert("Cadastro realizado com sucesso! Faça o login.");
             navigate("/");
         } catch (error) {

@@ -31,17 +31,12 @@ function Login() {
 
         localStorage.setItem("token", data.token);
 
-        // Não faz navigate com decoded
-        const decoded = jwtDecode(data.token);
-        console.log(decoded);
-        
-        navigateRole(decoded.role);
+        return data;
     };
 
     const navigateRole = (role) => {
         const roleRoutes = {
             scholarship_holder: "/bolsista",
-            student: "/aluno",
             tutor: "/home-tutor",
             coordinator: "/coordenador",
         };
@@ -53,7 +48,16 @@ function Login() {
             return;
         }
 
-        navigate(route)
+        if (route === "/bolsista") {
+            const perfil = localStorage.getItem("perfil");
+            
+            if (perfil === "ALUNO") {
+                navigate("/aluno");
+                return;
+            }
+        }
+
+        navigate(route);
     };
 
 
@@ -61,7 +65,12 @@ function Login() {
         e.preventDefault();
 
         try {
-            await login();
+            const data = await login();
+
+            const decoded = jwtDecode(data.token);
+            console.log(decoded);
+            
+            navigateRole(decoded.role);
         } catch (error) {
             handleAlert(error?.message || "Usuário não encontrado!");
         }
