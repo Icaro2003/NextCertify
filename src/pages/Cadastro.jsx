@@ -14,9 +14,14 @@ import '../css/forms.css';
 import '../css/form-pages.css';
 
 function Cadastro() {
+    // TESTE DE POST NA API
+    // Alterar depois
+
     const navigate = useNavigate();
 
     const { show, message, variant, alertKey, handleAlert } = useAlert();
+
+    const [count, setCount] = useState(0);
 
     const [dados, setDados] = useState({
         // Dados do usuário
@@ -27,13 +32,9 @@ function Cadastro() {
         matricula: "",
         cpf: "",
 
-        perfil: "",
-
-        // Bolsista / Aluno
         anoIngresso: "",
         curso: "",
 
-        // Tutor / Coordenador
         area: "",
         nivel: "",
         capacidadeMaxima: ""
@@ -43,8 +44,33 @@ function Cadastro() {
         setDados({ ...dados, [e.target.id]: e.target.value });
     };
 
+    let payload = {};
+
+    const registerCurso = async () => {
+        payload = {
+            nome: dados.curso,
+            codigo: `${dados.curso.toLocaleLowerCase()}0${setCount(count + 1)}`
+        };
+
+        const response = await fetch("http://localhost:3000/api/cursos", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(response.statusText || "Erro na requisição POST");
+        }
+
+        const data = await response.json();
+
+        return data;
+    };
+
     const registerUser = async () => {
-        const payload = {
+        payload = {
             nome: dados.nome,
             email: dados.email,
             senha: dados.senha,
@@ -52,30 +78,6 @@ function Cadastro() {
             cpf: dados.cpf,
             status: "ATIVO"
         };
-
-        if (dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") {
-            payload.bolsista = {
-                anoIngresso: Number(dados.anoIngresso),
-                curso: dados.curso
-            };
-        }
-
-        if (dados.perfil === "TUTOR") {
-            payload.tutor = {
-                area: dados.area,
-                nivel: dados.nivel,
-                capacidadeMaxima: Number(dados.capacidadeMaxima)
-            };
-        }
-
-        if (dados.perfil === "COORDENADOR") {
-            payload.coordenador = {
-                area: dados.area,
-                nivel: dados.nivel
-            };
-        }
-
-        localStorage.setItem("perfil", dados.perfil);
 
         const response = await fetch("http://localhost:3000/api/users", {
             method: 'POST',
@@ -94,11 +96,41 @@ function Cadastro() {
         return data;
     };
 
+    const registerAluno = async () => {
+        const user = await registerUser();
+        const curso = await registerCurso();
+
+        payload = {
+            usuarioId: user.id,
+            cursoId: curso.id,
+            matricula: dados.matricula,
+            role: 'ALUNO'
+        };
+
+        const response = await fetch("http://localhost:3000/api/alunos", {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(response.statusText || "Erro na requisição POST");
+        }
+
+        const data = await response.json();
+
+        return data;
+    };
+
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            await registerUser();
+            await registerAluno();
             alert("Cadastro realizado com sucesso! Faça o login.");
             navigate("/");
         } catch (error) {
@@ -165,24 +197,30 @@ function Cadastro() {
                                     />
                                 </div>
 
-                                <Form.Select
-                                    required
-                                    id='perfil'
-                                    className='mb-3 label-float'
-                                    value={dados.perfil}
-                                    onChange={handleChange}
-                                    style={
-                                        {
-                                            border: '1px solid #8C8B8B',
-                                            borderRadius: '20px'
-                                        }
-                                    }>
-                                    <option value="">Selecione o perfil</option>
-                                    <option value="ALUNO">Aluno</option>
-                                    <option value="BOLSISTA">Bolsista</option>
-                                    <option value="TUTOR">Tutor</option>
-                                    <option value="COORDENADOR">Coordenador</option>
-                                </Form.Select>
+                                <div className="mb-3">
+                                    <Form.Select
+                                        required
+                                        id='curso'
+                                        className='mb-3 label-float'
+                                        value={dados.curso}
+                                        onChange={handleChange}
+                                        style={
+                                            {
+                                                border: '1px solid #8C8B8B',
+                                                borderRadius: '20px'
+                                            }
+                                        }>
+                                        <option value="">Selecione o curso</option>
+                                        <option value="Ciência da Computação">Ciência da Computação</option>
+                                        <option value="Engenharia Ambiental">Engenharia Ambiental</option>
+                                        <option value="Engenharia Ambiental e Sanitária">
+                                            Engenharia Ambiental e Sanitária
+                                        </option>
+                                        <option value="Engenharia Civil">Engenharia Civil</option>
+                                        <option value="Engenharia de Minas">Engenharia de Minas</option>
+                                        <option value="Sistemas de Informação">Sistemas de Informação</option>
+                                    </Form.Select>
+                                </div>
 
                                 {(dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") &&
                                     <div className="mb-3">
@@ -285,8 +323,8 @@ function Cadastro() {
                         </div>
                     </Col>
                 </Row>
-            </Container>
-        </div>
+            </Container >
+        </div >
     );
 };
 
