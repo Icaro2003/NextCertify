@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, Row, Col, Form, Image } from "react-bootstrap";
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -14,14 +14,7 @@ import '../css/forms.css';
 import '../css/form-pages.css';
 
 function Cadastro() {
-    // TESTE DE POST NA API
-    // Alterar depois
-
     const navigate = useNavigate();
-
-    const { show, message, variant, alertKey, handleAlert } = useAlert();
-
-    const [count, setCount] = useState(0);
 
     const [dados, setDados] = useState({
         // Dados do usuário
@@ -30,7 +23,6 @@ function Cadastro() {
         senha: "",
         confirmarSenha: "",
         matricula: "",
-        cpf: "",
 
         anoIngresso: "",
         curso: "",
@@ -40,46 +32,50 @@ function Cadastro() {
         capacidadeMaxima: ""
     });
 
+    const { show, message, variant, alertKey, handleAlert } = useAlert();
+
+    const [cursos, setCursos] = useState([]);
+
+    let response, data;
+
+    useEffect(() => {
+        const getCursos = async () => {
+            try {
+                response = await fetch("http://localhost:3000/api/cursos");
+                data = await response.json();
+
+                if (!response.ok) {
+                    console.log(data.error || "Erro ao carregar cursos");
+                    return;
+                }
+
+                setCursos(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        getCursos();
+    }, []);
+
     const handleChange = (e) => {
         setDados({ ...dados, [e.target.id]: e.target.value });
     };
 
-    let payload = {};
-
-    const registerCurso = async () => {
-        payload = {
-            nome: dados.curso,
-            codigo: `${dados.curso.toLocaleLowerCase()}0${setCount(count + 1)}`
-        };
-
-        const response = await fetch("http://localhost:3000/api/cursos", {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(response.statusText || "Erro na requisição POST");
-        }
-
-        const data = await response.json();
-
-        return data;
-    };
-
     const registerUser = async () => {
-        payload = {
+        const payload = {
             nome: dados.nome,
             email: dados.email,
             senha: dados.senha,
-            matricula: dados.matricula,
-            cpf: dados.cpf,
-            status: "ATIVO"
+            status: "ATIVO",
+            
+            aluno: {
+                cursoId: dados.curso,
+                matricula: dados.matricula
+            }
         };
 
-        const response = await fetch("http://localhost:3000/api/users", {
+        response = await fetch("http://localhost:3000/api/users", {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -87,50 +83,21 @@ function Cadastro() {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error(response.statusText || "Erro na requisição POST");
-        }
+        data = await response.json();
 
-        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Erro na requisição POST");
+        }
 
         return data;
     };
-
-    const registerAluno = async () => {
-        const user = await registerUser();
-        const curso = await registerCurso();
-
-        payload = {
-            usuarioId: user.id,
-            cursoId: curso.id,
-            matricula: dados.matricula,
-            role: 'ALUNO'
-        };
-
-        const response = await fetch("http://localhost:3000/api/alunos", {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(response.statusText || "Erro na requisição POST");
-        }
-
-        const data = await response.json();
-
-        return data;
-    };
-
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            await registerAluno();
+            await registerUser();
             alert("Cadastro realizado com sucesso! Faça o login.");
             navigate("/");
         } catch (error) {
@@ -191,19 +158,12 @@ function Cadastro() {
                                 </div>
 
                                 <div className="mb-3">
-                                    <InputFlutuante
-                                        type="text" id="cpf" label="CPF"
-                                        value={dados.cpf} onChange={handleChange}
-                                    />
-                                </div>
-
-                                <div className="mb-3">
                                     <Form.Select
                                         required
                                         id='curso'
-                                        className='mb-3 label-float'
-                                        value={dados.curso}
                                         onChange={handleChange}
+                                        value={dados.curso}
+                                        className='mb-3 label-float'
                                         style={
                                             {
                                                 border: '1px solid #8C8B8B',
@@ -211,88 +171,28 @@ function Cadastro() {
                                             }
                                         }>
                                         <option value="">Selecione o curso</option>
-                                        <option value="Ciência da Computação">Ciência da Computação</option>
-                                        <option value="Engenharia Ambiental">Engenharia Ambiental</option>
-                                        <option value="Engenharia Ambiental e Sanitária">
-                                            Engenharia Ambiental e Sanitária
-                                        </option>
-                                        <option value="Engenharia Civil">Engenharia Civil</option>
-                                        <option value="Engenharia de Minas">Engenharia de Minas</option>
-                                        <option value="Sistemas de Informação">Sistemas de Informação</option>
+                                        {
+                                            cursos.map(curso => (
+                                                <option key={curso.id} value={curso.id}>{curso.nome}</option>
+                                            ))
+                                        }
+
                                     </Form.Select>
-                                </div>
 
-                                {(dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") &&
-                                    <div className="mb-3">
-                                        <div className="label-float mt-3">
-                                            <Form.Control
-                                                type='number'
-                                                min={0}
-                                                max={new Date().getFullYear()}
-                                                id='anoIngresso'
-                                                placeholder=" "
-                                                required
-                                                value={dados.anoIngresso}
-                                                onChange={handleChange}
-                                            />
-                                            <label htmlFor='anoIngresso'>Ano de ingresso</label>
-                                        </div>
-
-                                        <Form.Select
+                                    {/* <div className="label-float mt-3">
+                                        <Form.Control
+                                            type='number'
+                                            min={0}
+                                            max={new Date().getFullYear()}
+                                            id='anoIngresso'
+                                            placeholder=" "
                                             required
-                                            id='curso'
-                                            className='mb-3 label-float'
-                                            value={dados.curso}
+                                            value={dados.anoIngresso}
                                             onChange={handleChange}
-                                            style={
-                                                {
-                                                    border: '1px solid #8C8B8B',
-                                                    borderRadius: '20px'
-                                                }
-                                            }>
-                                            <option value="">Selecione o curso</option>
-                                            <option value="Ciência da Computação">Ciência da Computação</option>
-                                            <option value="Engenharia Ambiental">Engenharia Ambiental</option>
-                                            <option value="Engenharia Ambiental e Sanitária">
-                                                Engenharia Ambiental e Sanitária
-                                            </option>
-                                            <option value="Engenharia Civil">Engenharia Civil</option>
-                                            <option value="Engenharia de Minas">Engenharia de Minas</option>
-                                            <option value="Sistemas de Informação">Sistemas de Informação</option>
-                                        </Form.Select>
-                                    </div>
-                                }
-
-                                {(dados.perfil === "TUTOR" || dados.perfil === "COORDENADOR") &&
-                                    <div className="mb-3">
-                                        <InputFlutuante
-                                            type="text" id="area" label="Área"
-                                            value={dados.area} onChange={handleChange}
                                         />
-
-                                        <InputFlutuante
-                                            type="text" id="nivel" label="Nível"
-                                            value={dados.nivel} onChange={handleChange}
-                                        />
-                                    </div>
-                                }
-
-                                {(dados.perfil === "TUTOR") &&
-                                    <div className="mb-3">
-                                        <div className="label-float mt-3">
-                                            <Form.Control
-                                                type='number'
-                                                min={0}
-                                                id='capacidadeMaxima'
-                                                placeholder=" "
-                                                required
-                                                value={dados.capacidadeMaxima}
-                                                onChange={handleChange}
-                                            />
-                                            <label htmlFor='capacidadeMaxima'>Capacidade Máxima</label>
-                                        </div>
-                                    </div>
-                                }
+                                        <label htmlFor='anoIngresso'>Ano de ingresso</label>
+                                    </div> */}
+                                </div>
 
                                 <div className="mb-3">
                                     <InputFlutuante

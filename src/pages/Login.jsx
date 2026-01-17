@@ -7,7 +7,6 @@ import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
-import { jwtDecode } from 'jwt-decode';
 
 function Login() {
     const navigate = useNavigate();
@@ -23,11 +22,11 @@ function Login() {
             body: JSON.stringify({ email, senha }),
         });
 
-        if (!response.ok) {
-            throw new Error(response.statusText || "Usuário ou senha inválidos");
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Usuário ou senha inválidos");
+        }
 
         localStorage.setItem("token", data.token);
 
@@ -36,6 +35,7 @@ function Login() {
 
     const navigateRole = (role) => {
         const roleRoutes = {
+            student: "/aluno",
             scholarship_holder: "/bolsista",
             tutor: "/home-tutor",
             coordinator: "/coordenador",
@@ -48,15 +48,6 @@ function Login() {
             return;
         }
 
-        if (route === "/bolsista") {
-            const perfil = localStorage.getItem("perfil");
-            
-            if (perfil === "ALUNO") {
-                navigate("/aluno");
-                return;
-            }
-        }
-
         navigate(route);
     };
 
@@ -65,12 +56,9 @@ function Login() {
         e.preventDefault();
 
         try {
-            const data = await login();
-
-            const decoded = jwtDecode(data.token);
-            console.log(decoded);
-            
-            navigateRole(decoded.role);
+            const userData = await login();
+            alert(`Bem-vindo de volta! ${userData.usuario.nome}`)
+            navigateRole(userData.usuario.role);
         } catch (error) {
             handleAlert(error?.message || "Usuário não encontrado!");
         }
