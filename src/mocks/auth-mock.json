@@ -7,7 +7,8 @@
             "email": "joaosilva@email.com",
             "curso": "Sistemas de Informação",
             "password": "123456",
-            "role": "aluno"
+            "role": "aluno",
+            "semestre": "2026.1"
         },
         {
             "id": 2,
@@ -16,7 +17,8 @@
             "email": "maria.oliveira@email.com",
             "curso": "Engenharia de Minas",
             "password": "123456",
-            "role": "aluno"
+            "role": "aluno",
+            "semestre": "2026.1"
         },
         {
             "id": 3,
@@ -25,7 +27,8 @@
             "email": "carlos.santos@email.com",
             "curso": "Engenharia Civil",
             "password": "123456",
-            "role": "tutor"
+            "role": "tutor",
+            "semestre": "2024.1"
         },
         {
             "id": 4,
@@ -51,7 +54,8 @@
             "email": "carlos.almeida@email.com",
             "curso": "Sistemas de Informação",
             "password": "123456",
-            "role": "tutor"
+            "role": "tutor",
+            "semestre": "2024.1"
         }
     ]
 }

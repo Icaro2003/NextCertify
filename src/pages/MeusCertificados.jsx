@@ -24,8 +24,7 @@ function MeusCertificados() {
     useEffect(() => {
         if (!usuario) return;
         const listaGlobal = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
-        
-        // Mapeia os certificados do usuário e garante que o status esteja amigável para a tela
+    
         const meusCertificados = listaGlobal.filter(c => String(c.alunoId) === String(usuario.id)).map(c => {
             let statusExibicao = c.status;
             if (c.status === 'pendente') statusExibicao = 'Em espera';

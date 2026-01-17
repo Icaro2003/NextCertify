@@ -1,6 +1,6 @@
 import { Container, Row, Col, Card, Button, Navbar, Nav, Badge, Image } from 'react-bootstrap';
 import LogoNextCertify from '../img/NextCertify.png';
-import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher, FaFile, FaCertificate } from 'react-icons/fa';
+import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher, FaFileAlt, FaCertificate } from 'react-icons/fa';
 import { FaUserGear, FaBell } from 'react-icons/fa6';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -166,14 +166,32 @@ function HomeBolsista() {
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaFile size={60} className="text-secondary mb-3" />
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
                                 </div>
-                                <h3 className="text-primary fw-bold mb-3">Relatório de Acompanhamento dos Tutores</h3>
-                                <p className="text-muted mb-4">Relatório de acompanhamento dos tutores</p>
+                                <h3 className="text-primary fw-bold mb-3">Relatório individual Acompanhamento dos Tutores</h3>
+                                <p className="text-muted mb-4">Relatório individual de acompanhamento dos tutores</p>
                                 <Button
                                     variant="primary"
                                     className="px-4 py-2 w-100"
                                     onClick={() => navigate('/relatorio-individual-tutor')}
+                                >
+                                    Veja mais
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={4}>
+                        <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
+                            <Card.Body>
+                                <div className="mb-3">
+                                    <FaFileAlt size={60} className="text-secondary mb-3" />
+                                </div>
+                                <h3 className="text-primary fw-bold mb-3">Relatório individual Acompanhamento dos alunos</h3>
+                                <p className="text-muted mb-4">Relatório individual de acompanhamento dos alunos</p>
+                                <Button
+                                    variant="primary"
+                                    className="px-4 py-2 w-100"
+                                    onClick={() => navigate('/relatorio-individual-aluno')}
                                 >
                                     Veja mais
                                 </Button>
@@ -192,6 +210,42 @@ function HomeBolsista() {
                                     variant="primary"
                                     className="px-4 py-2 w-100"
                                     onClick={() => navigate('/validar-certificados')}
+                                >
+                                    Veja mais
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={4}>
+                        <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
+                            <Card.Body>
+                                <div className="mb-3">
+                                    <FaFileAlt size={60} className="text-secondary mb-3" />
+                                </div>
+                                <h3 className="text-primary fw-bold mb-3">Relatório Acompanhamento Geral dos alunos</h3>
+                                <p className="text-muted mb-4">Relatório de acompanhamento geral dos alunos</p>
+                                <Button
+                                    variant="primary"
+                                    className="px-4 py-2 w-100"
+                                    onClick={() => navigate('/relatorio-geral-aluno')}
+                                >
+                                    Veja mais
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col md={4}>
+                        <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
+                            <Card.Body>
+                                <div className="mb-3">
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
+                                </div>
+                                <h3 className="text-primary fw-bold mb-3">Relatório Acompanhamento geral do tutor</h3>
+                                <p className="text-muted mb-4">Relatório de acompanhamento geral do tutor</p>
+                                <Button
+                                    variant="primary"
+                                    className="px-4 py-2 w-100"
+                                    onClick={() => navigate('/relatorio-geral-tutor')}
                                 >
                                     Veja mais
                                 </Button>

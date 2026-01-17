@@ -6,6 +6,7 @@ import { FaUserCircle, FaFilePdf, FaFileCsv, FaSignOutAlt } from 'react-icons/fa
 import { FaBell } from 'react-icons/fa6';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
@@ -71,111 +72,103 @@ function RelatorioIndividualTutor() {
     }, [tutorSelecionado]);
 
     const downloadCSV = () => {
-        let csv = "";
+        const tutorNome = tutorSelecionado || "Geral";
+        const cargoEmitente = usuario.role === 'coordenador' ? 'Coordenador' : 'Bolsista';
 
-        // Título do CSV
-        csv += "Relatório Tutor\n\n";
+        let csv = `--- Relatório Individual do Tutor - NextCertify ---\n`;
+        csv += `Tutor: ${tutorNome}\n`;
+        csv += `Emitido por: ${usuario.name} (${cargoEmitente})\n`;
+        csv += `Data: ${new Date().toLocaleDateString()}\n\n`;
 
-        //resumo e métricas
-        csv += "Resumo Geral\n";
+        csv += "--- Resumo de Desempenho ---\n";
         csv += "Indicador,Valor\n";
-        dadosDashboard.metricas.forEach(m => {
+        dadosDashboard.metricas.forEach(m=> {
             csv += `${m.label},${m.val}\n`;
         });
-
         csv += "\n";
-        //Tutorandos
-        csv += "Tutorandos\n";
-        csv += "Matrícula,Nome,Encontros,Semestre\n";
+
+        csv += "--- Histórico de Encontros ---\n";
+        csv += "Matrícula,Nome do Aluno,Encontros Totais,Semestre\n";
         dadosDashboard.tutorandos.forEach(t => {
             csv += `${t.id},${t.nome},${t.encontros},${t.semestre}\n`;
         });
         csv += "\n";
 
-        //Dificuldades
-        csv += "Maiores Dificuldades dos Tutorandos\n";
+        csv += "--- Frequência de Dificuldades ---\n";
         csv += "Dificuldade,Percentual\n";
         dadosDashboard.dificuldades.forEach(d => {
             csv += `${d.titulo},${d.perc}\n`;
         });
 
-        //Download
-        const blob = new Blob(["\uFEFF" + csv], {
-            type: "text/csv;charset=utf-8;"
-        });
-
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "relatorio_tutor.csv";
-        document.body.appendChild(link);
+        link.download= `relatorio_individual_tutor_Responsavel:${usuario.name.replace(/\s+/g, '_').toLocaleLowerCase()}.csv`;
         link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
     };
 
-    const downloadPDF = () => {
+    const downloadPDF = async () => {
+        const areaGraficos = document.getElementById("area-graficos-tutor");
+        const tutorNome = tutorSelecionado || "Geral";
         const doc = new jsPDF();
+        const dataAtual = new Date().toLocaleDateString();
+        const cargoEmitente = usuario.role === 'coordenador' ? 'Coordenador' : 'Bolsista';
 
-        // Título
         doc.setFontSize(18);
-        doc.text("Relatório de Tutor", 14, 20);
-        // Subtítulo
-        doc.setFontSize(12);
-        doc.text(`Tutor: ${dadosDashboard.usuario.name}`, 14, 30);
-        // Métricas
-        doc.setFontSize(14);
-        doc.text("Resumo Geral", 14, 45);
+        doc.setTextColor(26, 86, 219);
+        doc.text("Relatório Individual do Tutor - NEXTCERTIFY", 14, 20);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Tutor Analisado: ${tutorNome}`, 14, 28);
+        doc.text(`Emitido por: ${usuario.name} (${cargoEmitente})`, 14, 34);
+        doc.text(`Data de Emissão: ${dataAtual}`, 14, 40);
 
-        autoTable(doc, {
-            startY: 50,
-            head: [["Indicador", "Valor"]],
-            body: dadosDashboard.metricas.map(m => [m.label, m.val])
+        autoTable(doc,{
+            startY: 46,
+            head: [['Indicador', 'Valor']],
+            body: dadosDashboard.metricas.map(m => [m.label, m.val]),
+            headStyles: { fillColor: [26, 86, 219] },
         });
 
-        // Tutorandos
+        if(areaGraficos){
+            try{
+                const canvas = await html2canvas(areaGraficos, { scale: 2, useCORS: true, logging:false });
+                const imgData = canvas.toDataURL('image/png');
+                const finalYMetricas = doc.lastAutoTable.finalY;
+                if(finalYMetricas > 150) doc.addPage();
+
+                const currentY = doc.lastAutoTable.finalY > 150 ? 20 : finalYMetricas + 15;
+
+                doc.setFontSize(14);
+                doc.setTextColor(0);
+                doc.text("Análise Visual dos encontros", 14, currentY);
+                doc.addImage(imgData, 'PNG', 10, currentY + 5, 190, 80);
+            } catch(e) {
+                console.error("Erro ao capturar gráficos para PDF:", e);
+            }
+        }
+
+        doc.addPage();
         doc.setFontSize(14);
-        doc.text(
-            "Tutorandos",
-            14,
-            doc.lastAutoTable.finalY + 15
-        );
+        doc.setTextColor(26, 86, 219);
+        doc.text("Histórico de encontros", 14, 15);
 
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 20,
-            head: [["Matrícula", "Nome", "Encontros", "Semestre"]],
-            body: dadosDashboard.tutorandos.map(t => [
-                t.id,
-                t.nome,
-                t.encontros,
-                t.semestre
-            ])
+            startY: 20,
+            head: [['Matrícula', 'Nome do Aluno', 'Encontros Totais', 'Semestre']],
+            body: dadosDashboard.tutorandos.map(t => [t.id, t.nome, t.encontros, t.semestre]),
+            headStyles: { fillColor: [99, 102, 219] },
         });
 
-        // Dificuldades
-        doc.setFontSize(14);
-        doc.text(
-            "Maiores Dificuldades dos Tutorandos",
-            14,
-            doc.lastAutoTable.finalY + 15
-        );
-
-        autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 20,
-            head: [["Dificuldade", "Percentual"]],
-            body: dadosDashboard.dificuldades.map(d => [
-                d.titulo,
-                d.perc
-            ])
-        });
-        // Rodapé
-        doc.setFontSize(10);
-        doc.text(
-            "© 2025 - NextCertify",
-            14,
-            doc.internal.pageSize.height - 10
-        );
-        doc.save("relatorio_tutor.pdf");
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++){
+            doc.setPage(i);
+            doc.setFontSize(10);
+            doc.setTextColor(150);
+            doc.text(`Página ${i} de ${pageCount} - NextCertify © 2026`, 14, doc.internal.pageSize.height - 10);
+        }
+        doc.save(`relatorio_individual_tutor_Responsavel:${usuario.name.replace(/\s+/g, '_').toLocaleLowerCase()}.pdf`);
     };
 
     const gradientStyle = { background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', color: 'white' };
@@ -256,7 +249,7 @@ function RelatorioIndividualTutor() {
                         </Row>
 
                         {/* Gráficos */}
-                        <Row className="mb-4 g-4">
+                        <Row className="mb-4 g-4" id="area-graficos-tutor">
                             <Col md={6}>
                                 <Card className="border-0 shadow-sm p-3 h-100">
                                     <h6 className="fw-bold text-dark">Evolução de Encontros (Virtuais vs Presenciais)</h6>

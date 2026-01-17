@@ -18,7 +18,7 @@ function RecordsTable({ user, route }) {
                     <th style={theadPrimary}>Nome</th>
                     <th style={theadPrimary}>E-mail</th>
                     <th style={theadPrimary}>Matrícula</th>
-                    <th style={theadPrimary}>Certificados</th>
+                    <th style={theadPrimary}>Semestre</th>
                     <th style={theadPrimary}>Ações</th>
                 </tr>
             </thead>
@@ -27,10 +27,11 @@ function RecordsTable({ user, route }) {
                     user.map((u, index) => (
                         <tr key={u.id}>
                             <td>{index + 1}</td>
-                            <td>{u.nome}</td>
+                            <td>{u.name}</td>
                             <td>{u.email}</td>
                             <td>{u.matricula}</td>
-                            <td>{u.certificados}</td>
+                            <td>{u.semestre}</td>
+                            {/* <td>{u.certificados}</td> */}
                             <td>
                                 <Button
                                     variant="primary"
@@ -38,7 +39,7 @@ function RecordsTable({ user, route }) {
                                     onClick={() => navigate(route)} // Link para página de relatório individual, carregando informação do aluno selecionado
                                 >
                                     <TbReport size={25} className="text-light" />
-                                    <span>Gerar certificado</span>
+                                    <span>Gerar relatório</span>
                                 </Button>
                             </td>
                         </tr>

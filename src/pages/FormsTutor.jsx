@@ -9,14 +9,11 @@ function FormsTutor() {
     const location = useLocation();
 
     const nomeAlunoSelecionado = location.state?.alunoNome || "João Silva de Lima Barreto";
-
-    // carrega user do storage sem quebrar o useEffect
     const [usuario] = useState(() => {
         const saved = localStorage.getItem("usuarioLogado");
         return saved ? JSON.parse(saved) : null;
     });
 
-    // já inicia a data formatada, sem precisar de useEffect pra isso
     const [dataAtual] = useState(() => {
         const hoje = new Date();
         return hoje.toLocaleDateString('pt-BR');

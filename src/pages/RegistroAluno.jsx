@@ -4,7 +4,7 @@ import { TbReportAnalytics } from "react-icons/tb";
 import { FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
 import RecordsTable from "../components/RecordsTable";
-import registroAlunos from "/src/mocks/registro-alunos-mock";
+import registroAlunos from "/src/mocks/auth-mock";
 import { useNavigate } from "react-router-dom";
 
 function RegistroAluno() {
@@ -19,6 +19,8 @@ function RegistroAluno() {
     if (!usuario) {
         return <div className="p-5 text-center">Carregando...</div>;
     }
+
+    const alunos = registroAlunos.users.filter(user => user.role === "aluno");
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -67,7 +69,10 @@ function RegistroAluno() {
                     </Button>
                 </div>
 
-                <RecordsTable user={registroAlunos} route={'/relatorio-individual-aluno'} />
+                {alunos.length > 0 &&
+                    <RecordsTable user={alunos} route={'/relatorio-individual-aluno'} />
+                }
+
             </Container>
 
             <footer style={{ ...gradientStyle, padding: '30px 0', textAlign: 'center' }} className="mt-auto">
