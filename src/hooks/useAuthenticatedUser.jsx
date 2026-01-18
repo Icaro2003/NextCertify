@@ -39,6 +39,7 @@ function useAuthenticatedUser() {
 
     const userAuthenticatedProps = {
         usuario,
+        token: localStorage.getItem("token"),
         userRole,
         handleLogout
     };
