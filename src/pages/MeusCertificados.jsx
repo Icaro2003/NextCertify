@@ -24,7 +24,12 @@ function MeusCertificados() {
     useEffect(() => {
         if (!usuario || !token) return;
 
-        const fetchCertificados = async () => {
+        if (usuario.aluno.role !== 'student') {
+            alert("Acesso negado. Esta página é exclusiva para alunos.");
+            navigate('/');
+        }
+
+        const carregarCertificados = async () => {
             try {
                 const response = await fetch(`http://localhost:3000/api/certificates/user/${usuario.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -56,7 +61,7 @@ function MeusCertificados() {
             }
         };
 
-        fetchCertificados();
+        carregarCertificados();
     }, [usuario, token]);
 
     const handleFileSelect = () => {
@@ -161,7 +166,9 @@ function MeusCertificados() {
         return 'secondary';
     };
 
-    if (!usuario) return null;
+    if (!usuario) {
+        return null;
+    }
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -47,8 +47,7 @@ function App() {
       <Route path="/aluno" element={<HomeAluno />} />
       
       <Route path="/meus-certificados" element={<MeusCertificados />} />
-      {/* <Route path="/avaliacao-tutoria" element={<AvaliacaoTutoria />} /> */}
-      <Route path="/avaliacao-tutoria" element={<h1>Funciona</h1>} />
+      <Route path="/avaliacao-tutoria" element={<AvaliacaoTutoria />} />
       <Route path="/editar-perfil" element={<EditarPerfil />} />
 
       <Route path="/bolsista" element={<HomeBolsista />} />

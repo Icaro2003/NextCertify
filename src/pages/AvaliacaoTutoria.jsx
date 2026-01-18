@@ -3,23 +3,21 @@ import { Container, Row, Col, Button, Navbar, Nav, Form, Image } from 'react-boo
 import { FaBell, FaUserCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
-// Importe seu mock de usuários para listar os tutores
-import mockAut from '../mocks/auth-mock.json'; 
+import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function AvaliacaoTutoria() {
     const navigate = useNavigate();
 
-    const [usuario, setUsuario] = useState(() => {
-        const saved = localStorage.getItem("usuarioLogado");
-        return saved ? JSON.parse(saved) : null;
-    });
+    const { usuario, token, handleLogout } = useAuthenticatedUser();
 
     const [listaTutores, setListaTutores] = useState([]);
+    const [cursos, setCursos] = useState([]);
+    const [carregando, setCarregando] = useState(true);
 
     const [formData, setFormData] = useState(() => {
         const today = new Date().toISOString().slice(0, 10);
         return {
-            nome: usuario?.name || '', 
+            nome: usuario?.nome || '',
             data: today,
             email: usuario?.email || '',
             curso: '',
@@ -34,29 +32,78 @@ function AvaliacaoTutoria() {
     });
 
     useEffect(() => {
-        if (!usuario) {
-            navigate('/');
-        } else if (usuario.role !== 'aluno') {
+        if (usuario) {
+            setFormData(prev => ({
+                ...prev,
+                nome: usuario.nome || '',
+                email: usuario.email || ''
+            }));
+        }
+
+        if (usuario.role !== 'student') {
             alert("Acesso negado. Esta página é exclusiva para alunos.");
             navigate('/');
         }
-
-        // Carregar tutores do mock
-        const usuarios = Array.isArray(mockAut) ? mockAut : (mockAut.users || []);
-        const tutoresEncontrados = usuarios.filter(u => u.role === 'tutor');
-        setListaTutores(tutoresEncontrados);
     }, [usuario, navigate]);
+
+    let response, data;
+
+    useEffect(() => {
+        const carregarTutores = async () => {
+            if (!token) {
+                return;
+            }
+
+            try {
+                response = await fetch("http://localhost:3000/api/users/tutores", {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log(response.statusText);
+                }
+
+                data = await response.json();
+                console.log(data);
+                setListaTutores(data);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setCarregando(false);
+            }
+        };
+
+        const carregarCursos = async () => {
+            try {
+                response = await fetch("http://localhost:3000/api/cursos");
+                data = await response.json();
+
+                if (!response.ok) {
+                    console.log(data.error || "Erro ao carregar cursos");
+                    return;
+                }
+
+                setCursos(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        carregarCursos();
+        carregarTutores();
+    }, [token]);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
-        
-        // Lógica especial para salvar o nome do tutor junto com o ID
+
         if (id === "tutorId") {
-            const tutorSelecionado = listaTutores.find(t => t.matricula === value);
-            setFormData({ 
-                ...formData, 
-                tutorId: value, 
-                tutorNome: tutorSelecionado ? tutorSelecionado.name : '' 
+            const tutorSelecionado = listaTutores.find(t => t.id === value);
+            setFormData({
+                ...formData,
+                tutorId: value,
+                tutorNome: tutorSelecionado ? tutorSelecionado.nome : ''
             });
         } else {
             setFormData({ ...formData, [id]: value });
@@ -65,7 +112,7 @@ function AvaliacaoTutoria() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if (!formData.tutorId) {
             alert("Por favor, selecione o tutor que acompanhou você.");
             return;
@@ -75,11 +122,13 @@ function AvaliacaoTutoria() {
         const novaAvaliacao = {
             ...formData,
             id: Date.now(),
+            alunoId: usuario?.id,
         };
 
         const listaAtualizada = [...avaliacaoSalvas, novaAvaliacao];
         localStorage.setItem("@App:avaliacao", JSON.stringify(listaAtualizada));
         alert(`Avaliação enviada com sucesso!`);
+
         navigate('/aluno');
     };
 
@@ -89,7 +138,7 @@ function AvaliacaoTutoria() {
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            
+
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand onClick={() => navigate('/aluno')} style={{ cursor: 'pointer' }}>
@@ -129,8 +178,11 @@ function AvaliacaoTutoria() {
                             <Form.Label className="text-primary fw-bold">Curso</Form.Label>
                             <Form.Select id="curso" value={formData.curso} onChange={handleChange} required>
                                 <option value="">Selecionar Curso</option>
-                                <option value="CC">Ciência da Computação</option>
-                                <option value="SI">Sistemas de Informação</option>
+                                {
+                                    cursos.map(curso => (
+                                        <option key={curso.id} value={curso.id}>{curso.nome}</option>
+                                    ))
+                                }
                             </Form.Select>
                         </Col>
                     </Row>
@@ -144,17 +196,17 @@ function AvaliacaoTutoria() {
                         <Col md={6}>
                             <Form.Group>
                                 <Form.Label className="fw-bold">Selecione o Tutor acompanhante</Form.Label>
-                                <Form.Select 
-                                    id="tutorId" 
-                                    value={formData.tutorId} 
-                                    onChange={handleChange} 
+                                <Form.Select
+                                    id="tutorId"
+                                    value={formData.tutorId}
+                                    onChange={handleChange}
                                     required
                                     style={{ border: '2px solid #0d6efd' }}
                                 >
                                     <option value="">Clique para selecionar</option>
                                     {listaTutores.map(t => (
-                                        <option key={t.matricula} value={t.matricula}>
-                                            {t.name}
+                                        <option key={t.id} value={t.id}>
+                                            {t.nome}
                                         </option>
                                     ))}
                                 </Form.Select>
@@ -212,8 +264,8 @@ function AvaliacaoTutoria() {
                         <Col md={6}>
                             <Form.Label className="text-primary fw-bold">Deseja continuar no projeto em 2025.2?</Form.Label>
                             <div className="mt-2">
-                                <Form.Check inline label="Sim" name="perm" type="radio" checked={formData.permanecer === 'sim'} onChange={() => setFormData({...formData, permanecer: 'sim'})} />
-                                <Form.Check inline label="Não" name="perm" type="radio" checked={formData.permanecer === 'nao'} onChange={() => setFormData({...formData, permanecer: 'nao'})} />
+                                <Form.Check inline label="Sim" name="perm" type="radio" checked={formData.permanecer === 'sim'} onChange={() => setFormData({ ...formData, permanecer: 'sim' })} />
+                                <Form.Check inline label="Não" name="perm" type="radio" checked={formData.permanecer === 'nao'} onChange={() => setFormData({ ...formData, permanecer: 'nao' })} />
                             </div>
                         </Col>
                     </Row>
