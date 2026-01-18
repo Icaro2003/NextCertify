@@ -3,28 +3,43 @@ import { useNavigate } from "react-router-dom";
 
 function useAuthenticatedUser() {
     const navigate = useNavigate();
-    const [usuario, setUsuario] = useState(null);
+    const [usuario, setUsuario] = useState(() => {
+        try {
+            const usuarioLogado = localStorage.getItem("user");
+
+            return usuarioLogado ? JSON.parse(usuarioLogado) : null;
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    });
 
     useEffect(() => {
-        //Não apagar por enquanto para realizar os testes
-        // Pegar os dados salvos no LocalStorage
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-
-        if (usuarioLogado) {
-            setUsuario(usuarioLogado);
-        } else {
-            // Vai retornar para login caso não tenha usuário logado
-            navigate('/');
+        if (!usuario) {
+            navigate("/");
         }
-    }, [navigate]);
+    }, [usuario, navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
+        localStorage.clear();
+        setUsuario(null);
         navigate('/');
+    };
+
+    const userRole = (role) => {
+        const roleNames = {
+            student: "Aluno",
+            scholarship_holder: "Bolsista",
+            tutor: "Tutor",
+            coordinator: "Coordenador"
+        };
+
+        return roleNames[role];
     };
 
     const userAuthenticatedProps = {
         usuario,
+        userRole,
         handleLogout
     };
 

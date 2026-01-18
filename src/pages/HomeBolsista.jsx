@@ -8,31 +8,11 @@ import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function HomeBolsista() {
     const navigate = useNavigate();
-    const { usuario, handleLogout } = useAuthenticatedUser();
 
-    const gradientStyle = {
-        background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
-        color: 'white'
-    };
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
 
-    useEffect(() => {
-            const savedUser = localStorage.getItem("usuarioLogado");
-            const userParsed = savedUser ? JSON.parse(savedUser) : null;
-    
-            if(!userParsed){
-                navigate('/');
-            } else if(userParsed.role !== 'bolsista'){
-                alert("Acesso restrito: Você não tem permissão de bolsista.");
-    
-                if(userParsed.role === 'tutor') navigate('/home-tutor');
-                else if(userParsed.role === 'coordenador') navigate('/coordenador');
-                else if(userParsed.role === 'aluno') navigate('/aluno');
-                else navigate('/');
-            }
-        }, [navigate]);
-
-    if (!usuario || usuario.role !== 'bolsista') {
-        return <div className="p-5 text-center">Verificando permissões...</div>;
+    if (!usuario || usuario.role !== 'scholarship_holder') {
+        return <div className="text-center mt-5">Carregando...</div>;
     }
 
     return (
@@ -60,7 +40,7 @@ function HomeBolsista() {
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
@@ -77,9 +57,11 @@ function HomeBolsista() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
-                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
-                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
+                                <h2 className="mb-1 fw-bold">{usuario.nome}</h2>
+                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{userRole(usuario.role)}</Badge>
+                                {usuario.aluno.matricula &&
+                                    <p className="mb-0 text-light">Matrícula: {usuario.aluno.matricula}</p>
+                                }
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -93,7 +75,7 @@ function HomeBolsista() {
 
             <Container className="my-5 flex-grow-1">
                 <div className="mb-5">
-                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.name.split(' ')[0]}</h1>
+                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.nome.split(' ')[0]}</h1>
                     <p className="text-muted fs-5">
                         Aqui você pode realizar upload dos seus certificados e fazer a avaliação do projeto de tutoria.
                     </p>
@@ -166,7 +148,7 @@ function HomeBolsista() {
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }} />
                                 </div>
                                 <h3 className="text-primary fw-bold mb-3">Relatório individual Acompanhamento dos Tutores</h3>
                                 <p className="text-muted mb-4">Relatório individual de acompanhamento dos tutores</p>
@@ -238,7 +220,7 @@ function HomeBolsista() {
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }} />
                                 </div>
                                 <h3 className="text-primary fw-bold mb-3">Relatório Acompanhamento geral do tutor</h3>
                                 <p className="text-muted mb-4">Relatório de acompanhamento geral do tutor</p>

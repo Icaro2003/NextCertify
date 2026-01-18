@@ -8,35 +8,11 @@ import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 function HomeTutor() {
     const navigate = useNavigate();
 
-   const { usuario, handleLogout } = useAuthenticatedUser();
-
-    const gradientStyle = {
-        background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)',
-        color: 'white'
-    };
- 
-    useEffect(() => {
-        const savedUser = localStorage.getItem("usuarioLogado");
-        const userParsed = savedUser ? JSON.parse(savedUser) : null;
-
-        if(!userParsed){
-            navigate('/');
-        } else if(userParsed.role !== 'tutor'){
-            alert("Acesso restrito: Você não tem permissão de tutor.");
-
-            if(userParsed.role === 'coordenador') navigate('/coordenador');
-            else if(userParsed.role === 'bolsista') navigate('/bolsista');
-            else if(userParsed.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [navigate]);
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
 
     if (!usuario || usuario.role !== 'tutor') {
-        return <div className="p-5 text-center">Verificando permissões...</div>;
+        return <div className="text-center mt-5">Carregando...</div>;
     }
-
-
-    const primeiroNome = usuario.name ? usuario.name.split(' ')[0] : 'Usuário';
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -64,7 +40,7 @@ function HomeTutor() {
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
                                 <FaSignOutAlt size={16} /> Sair
@@ -84,9 +60,13 @@ function HomeTutor() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
+                                <h2 className="mb-1 fw-bold">{usuario.nome}</h2>
                                 <div className="d-flex align-items-center gap-2">
-                                    <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
+                                    <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{userRole(usuario.role)}</Badge>
+
+                                    {usuario.aluno.matricula &&
+                                        <p className="mb-0 text-light">Matrícula: {usuario.aluno.matricula}</p>
+                                    }
                                 </div>
                                 <p className="mb-0 text-light mt-1 opacity-75">
                                     Estudante de eventos e networking

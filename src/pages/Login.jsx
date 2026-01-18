@@ -29,6 +29,7 @@ function Login() {
         }
 
         localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.usuario));
 
         return data;
     };
