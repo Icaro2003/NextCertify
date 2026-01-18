@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Button, Navbar, Nav, Form, Image, Modal, Badge, Alert } from 'react-bootstrap';
-import { FaBell, FaUserCircle, FaCloudUploadAlt, FaCalendarAlt, FaClock, FaDownload, FaTrash, FaExclamationTriangle } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaCloudUploadAlt, FaCalendarAlt, FaClock, FaDownload, FaTrash, FaExclamationTriangle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 
@@ -120,6 +120,11 @@ function MeusCertificados() {
         if (s === 'em espera' || s === 'pendente') return 'warning';
         return 'secondary';
     };
+    
+    const handleLogout = () => {
+        localStorage.removeItem("usuarioLogado");
+        navigate('/');
+    };
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -142,6 +147,9 @@ function MeusCertificados() {
                                 <FaUserCircle size={32} className="text-primary" />
                                 <span className="fw-bold text-dark">{usuario?.name || 'Usuário'}</span>
                             </div>
+                            <Button variant="outline-danger" size="sm" onClick={handleLogout} className="d-flex align-items-center gap-2">
+                                <FaSignOutAlt size={16} /> Sair
+                            </Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>

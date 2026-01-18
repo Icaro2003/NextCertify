@@ -35,19 +35,23 @@ function RelatoriosCoordenador() {
             navigate('/');
         }
 
-        const baseDados = { ...mockData };
-        const relatoriosTutores = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
+        //const baseDados = { ...mockData };
+        //const relatoriosTutores = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
+        //const certificadosGlobais = JSON.parse(localStorage.getItem("lista_global_certificados") || "[]");
+        const relatoriosReais = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
         const certificadosGlobais = JSON.parse(localStorage.getItem("lista_global_certificados") || "[]");
-        
-        const listaUsuarios = Array.isArray(mockAut) 
-            ? mockAut 
-            : (mockAut.users || mockAut.usuarios || []);
+        const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
+
+        const listaUsuarios = [
+            ...(Array.isArray(mockAut) ? mockAut : (mockAut.users || [])),
+            ...usuariosCadastrados
+        ];
 
         const listaTutoresMock = listaUsuarios.filter(user => user.role === 'tutor').map(t => ({
             id: t.matricula || "TUT-OFF",
             nome: t.name,
-            encontros: relatoriosTutores.filter(r => r.tutorNome === t.name).length,
-            semestre: "2025.1"
+            encontros: relatoriosReais.filter(r => r.tutorNome === t.name).length,
+            semestre: t.semestre || "2025.1"
         }));
 
         // Filtra Alunos (Tutorandos) do Mock
@@ -55,16 +59,16 @@ function RelatoriosCoordenador() {
             id: a.matricula || "ALU-OFF",
             nome: a.name,
             encontros: 1,
-            semestre: "2025.1"
+            semestre: a.semestre || "2025.1"
         }));
 
         // --- CÁLCULOS DE MÉTRICAS ---
         const totalCertificadosCount = certificadosGlobais.length;
-        const totalRelatorios = relatoriosTutores.length || 1;
+        const totalRelatorios = relatoriosReais.length || 1;
 
         // Processamento de dificuldades (Lógica original)
         const countsDif = { conteudo: 0, acesso: 0, funcionamento: 0, outras: 0 };
-        relatoriosTutores.forEach(rel => {
+        relatoriosReais.forEach(rel => {
             if (rel.dificuldadeTipo === 'conteudo') countsDif.conteudo++;
             if (rel.dificuldadeTipo === 'acesso') countsDif.acesso++;
             if (rel.dificuldadeTipo === 'funcionamento') countsDif.funcionamento++;
@@ -81,12 +85,12 @@ function RelatoriosCoordenador() {
             { label: "Tutorandos Ativos", val: listaAlunosMock.length, icon: "🎓" },
             { label: "Tutores", val: listaTutoresMock.length, icon: "🏫" },
             { label: "Experiência da Tutoria", val: "85%", icon: "😊" },
-            { label: "Encontros Realizados", val: relatoriosTutores.reduce((acc, curr) => acc + Number(curr.encontrosTotais || 0), 0), icon: "📅" },
+            { label: "Encontros Realizados", val: relatoriosReais.reduce((acc, curr) => acc + Number(curr.encontrosTotais || 0), 0), icon: "📅" },
             { label: "Certificados", val: totalCertificadosCount, icon: "🏅" },
         ];
 
-        setDadosDashboard({
-            ...baseDados,
+        setDadosDashboard(prev => ({
+            ...prev,
             metricas: novasMetricas,
             dificuldades: novasDificuldades,
             tutores: listaTutoresMock,
@@ -96,8 +100,8 @@ function RelatoriosCoordenador() {
                 { name: 'Acesso', sim: countsDif.acesso, nao: totalRelatorios - countsDif.acesso },
                 { name: 'Outras', sim: countsDif.outras, nao: totalRelatorios - countsDif.outras },
             ],
-            usuario: { name: "Coordenador Geral" }
-        });
+            usuario: { name: usuarioLogado.name }
+        }));
     }, [navigate]);
 
     const handleLogout = () => {
@@ -317,7 +321,10 @@ function RelatoriosCoordenador() {
                                 <tbody>
                                     {(JSON.parse(localStorage.getItem("lista_global_certificados") || "[]")).map((cert, i) => (
                                         <tr key={i}>
-                                            <td>{cert.aluno}</td><td>{cert.titulo}</td><td>{cert.horas}h</td><td>{cert.periodo}</td>
+                                            <td>{cert.alunoNome || cert.aluno || "Não identificado"}</td>
+                                            <td>{cert.titulo}</td>
+                                            <td>{cert.horas}h</td>
+                                            <td>{cert.periodo || cert.data}</td>
                                             <td><Badge bg={cert.status === 'aprovado' ? 'success' : 'warning'}>{cert.status}</Badge></td>
                                         </tr>
                                     ))}

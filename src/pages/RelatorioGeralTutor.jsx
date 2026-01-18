@@ -32,9 +32,15 @@ function RelatorioGeralTutor() {
         if (!usuario) return;
 
         const relatorios = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
-        const totalTutorandos = new Set(relatorios.map(r => r.aluno)).size;
-        const totalEncontros = relatorios.reduce((sum, r) => sum + (r.encontrosTotais || 0), 0);
-        const totalTutores = authMock.users.filter(u => u.role === 'tutor').length;
+        const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
+        const todosUsuarios = [...authMock.users, ...usuariosCadastrados];
+
+        const listaTutores = todosUsuarios.filter(u => u.role === 'tutor');
+        const listaAlunos = todosUsuarios.filter(u => u.role === 'aluno');
+
+       const totalTutorandos = new Set([...relatorios.map(r => r.aluno), ...listaAlunos.map(a => a.name)]).size;
+       const totalEncontros = relatorios.reduce((sum, r) => sum + (r.encontrosTotais || 0), 0);
+       const totalTutores = listaTutores.length;
 
         const metricas = [
             { label: "Tutorandos", val: totalTutorandos.toString(), icon: "🧑‍🎓" },
@@ -50,6 +56,21 @@ function RelatorioGeralTutor() {
             encontrosPorMes[mes].total += r.encontrosTotais || 0;
         });
         const graficos = Object.keys(encontrosPorMes).length > 0 ? Object.keys(encontrosPorMes).map(mes => ({ name: mes, ...encontrosPorMes[mes] })) : mockData.graficos;
+
+        // Detalhando para as tabelas
+        const tutoresProcessados = listaTutores.map(u => ({
+            id: u.matricula || u.id,
+            nome: u.name,
+            encontros: relatorios.filter(r => r.tutorMatricula === u.matricula).reduce((sum, r) => sum + (r.encontrosTotais || 0), 0),
+            semestre: u.semestre || "2024.1"
+        }));
+
+        const alunosProcessados = listaAlunos.map(u => ({
+            id: u.matricula || u.id,
+            nome: u.name,
+            encontros: relatorios.filter(r => r.matricula === u.matricula).reduce((sum, r) => sum + (r.encontrosTotais || 0), 0),
+            semestre: u.semestre || "2026.1"            
+        }));        
 
         // Experiência gráfico
         const experienciaPorMes = {};
@@ -76,42 +97,42 @@ function RelatorioGeralTutor() {
         // Dificuldades (contar tipos)
         const dificuldadesCount = {};
         relatorios.forEach(r => {
-            if (r.dificuldadeTipo) {
+            if (r.dificuldadeTipo && r.dificuldadeTipo !== 'selecionar') {
                 dificuldadesCount[r.dificuldadeTipo] = (dificuldadesCount[r.dificuldadeTipo] || 0) + 1;
             }
         });
-        const totalDificuldades = relatorios.length;
+        //const totalDificuldades = relatorios.length;
         const dificuldades = Object.keys(dificuldadesCount).map(tipo => ({
             icon: "📚",
             titulo: tipo,
-            desc: "Descrição",
-            perc: totalDificuldades > 0 ? `${Math.round((dificuldadesCount[tipo] / totalDificuldades) * 100)}%` : "0%"
+            desc: `Problemas relatados em ${tipo}`,
+            perc: relatorios.length > 0 ? `${Math.round((dificuldadesCount[tipo] / relatorios.length) * 100)}%` : "0%"
         }));
 
-        // Tutores e Alunos do auth-mock
-        const tutores = authMock.users.filter(u => u.role === 'tutor').map(u => ({
+        // Tutores e Alunos (NÃO APAGAR, COMDANDO AINDA PODE SER UTILIZADO CASO TENHAMOS DIFICULDADES)
+        /*const tutores = authMock.users.filter(u => u.role === 'tutor').map(u => ({
             id: u.matricula,
             nome: u.name,
             encontros: relatorios.filter(r => r.tutorMatricula === u.matricula).reduce((sum, r) => sum + (r.encontrosTotais || 0), 0),
             semestre: u.semestre || "N/I"
-        }));
+        }));*/
 
-        const alunos = authMock.users.filter(u => u.role === 'aluno').map(u => ({
+        /*const alunos = authMock.users.filter(u => u.role === 'aluno').map(u => ({
             id: u.matricula,
             nome: u.name,
             encontros: relatorios.filter(r => r.matricula === u.matricula).reduce((sum, r) => sum + (r.encontrosTotais || 0), 0),
             semestre: u.semestre || "N/I"
-        }));
+        }));*/
 
         setDadosDashboard({
             usuario: { name: usuario.name },
             metricas,
             graficos,
-            experienciaGrafico,
-            dificuldadesGrafico,
-            dificuldades,
-            tutores,
-            tutorandos: alunos
+            experienciaGrafico: mockData.experienciaGrafico,
+            dificuldadesGrafico: mockData.dificuldadesGrafico,
+            dificuldades: dificuldades.length > 0 ? dificuldades : mockData.dificuldades,
+            tutores: tutoresProcessados,
+            tutorandos: alunosProcessados
         });
     }, [usuario]);
 

@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import autoTable from 'jspdf-autotable';
+import authMock from '../mocks/auth-mock.json';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function RelatorioIndividualTutor() {
@@ -17,7 +18,7 @@ function RelatorioIndividualTutor() {
     const [listaTutores, setListaTutores] = useState([]);
 
     const [dadosDashboard, setDadosDashboard] = useState({
-        usuario: { name: "" },
+        usuario: { name: "", matricula: "", curso: "" },
         metricas: [],
         graficos: [],
         tutorandos: [],
@@ -27,13 +28,25 @@ function RelatorioIndividualTutor() {
 
     useEffect(() => {
         const relatorioReais = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
-        const nomesTutores = [...new Set(relatorioReais.map(r => r.tutorNome))];
-        setListaTutores(nomesTutores);
-        const tutorParaExibir = tutorSelecionado || (nomesTutores.length > 0 ? nomesTutores[0] : "");
+        const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
+        const todosUsuarios = [...authMock.users, ...usuariosCadastrados];
+        const todosTutores = todosUsuarios.filter(u => u.role === 'tutor');
+        
+        const nomesRelatorios = [...new Set(relatorioReais.map(r => r.tutorNome))];
+        const nomesCadastrados = todosTutores.map(t => t.name);
+
+        //Linha para unificar e remover duplicatas dos nomes para o dropdown
+        const nomesDropdown = [...new Set([...nomesRelatorios, ...nomesCadastrados])].filter(Boolean);
+        setListaTutores(nomesDropdown);
+
+        // Linha para identificar o tutor atual e gerar os dados dele na dashboard
+        const tutorParaExibir = tutorSelecionado || (nomesDropdown.length > 0 ? nomesDropdown[0] : "");
+    
+        const inforTutor = todosTutores.find(t => t.name === tutorParaExibir) || { name: tutorParaExibir }; 
 
         if(tutorParaExibir){
             const filtrados = relatorioReais.filter(r => r.tutorNome === tutorParaExibir);
-            const totalEncontros = filtrados.reduce((acc, curr) => acc + curr.encontrosTotais, 0);
+            const totalEncontros = filtrados.reduce((acc, curr) => acc + (curr.encontrosTotais || 0), 0);
             const alunosAtendidos = [...new Set(filtrados.map(r => r.aluno))].length;
             const counts = { conteudo: 0, acesso: 0, nenhuma: 0, outras: 0 };
             filtrados.forEach(r => {
@@ -41,18 +54,23 @@ function RelatorioIndividualTutor() {
             });
 
             setDadosDashboard({
-                usuario: { name: tutorParaExibir },
+                usuario: { 
+                    name: inforTutor.name,
+                    matricula: inforTutor.matricula || "N/A",
+                    curso: inforTutor.curso || "Não informado" 
+                },
                 metricas: [
                     { label: "Total de Relatórios", val: filtrados.length, icon: "📄" },
                     { label: "Total de Encontros", val: totalEncontros, icon: "👥" },
                     { label: "Alunos Distintos", val: alunosAtendidos, icon: "🎓" },
+                    { label: "Matricula tutor", val: inforTutor.matricula || "----", icon: "🆔" },
                     { label: "Média Mensal", val: (filtrados.length / 1).toFixed(1), icon: "📊" }
                 ],
                 tutorandos: filtrados.map(r => ({
                     id: r.matricula,
                     nome: r.aluno,
                     encontros: r.encontrosTotais,
-                    semestre: "2025.1"
+                    semestre: r.semestre || "2025.1"
                 })),
                 dificuldadesGrafico: [
                     { name: 'Conteúdo', sim: counts.conteudo, nao: filtrados.length - counts.conteudo },
@@ -60,8 +78,8 @@ function RelatorioIndividualTutor() {
                     { name: 'Outras', sim: counts.outras, nao: filtrados.length - counts.outras },
                 ],
                 dificuldades: [
-                    { titulo: "Conteúdo", perc: `${((counts.conteudo/filtrados.length)*100).toFixed(0)}%`, icon: "📚", desc: "Dificuldade técnica" },
-                    { titulo: "Acesso", perc: `${((counts.acesso/filtrados.length)*100).toFixed(0)}%`, icon: "🌐", desc: "Internet/Plataforma" }
+                    { titulo: "Conteúdo", perc: filtrados.length > 0 ? `${((counts.conteudo/filtrados.length)*100).toFixed(0)}%` : "0%", icon: "📚", desc: "Dificuldade técnica" },
+                    { titulo: "Acesso", perc: filtrados.length > 0 ? `${((counts.acesso/filtrados.length)*100).toFixed(0)}%` : "0%", icon: "🌐", desc: "Internet/Plataforma" }
                 ],
                 graficos: [
                     { name: 'Sem 1', online: 2, presencial: 1 }, // Exemplo estático ou processar por data

@@ -33,7 +33,9 @@ function RelatorioGeralAluno() {
         const relatoriosTutores = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
         const certificadosGlobais = JSON.parse(localStorage.getItem("lista_global_certificados") || "[]");
         const avaliacoesAlunos = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");  
-        const listaUsuarios = Array.isArray(mockAut) ? mockAut : (mockAut.users || mockAut.usuarios || []);
+        const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
+        const usuariosMock = Array.isArray(mockAut) ? mockAut : (mockAut.users || mockAut.usuarios || []);
+        const listaUsuarios = [...usuariosMock, ...usuariosCadastrados];
 
         const tutoresReal = listaUsuarios.filter(u => u.role === 'tutor').map(t => {
             const notasDesteTutor = avaliacoesAlunos.filter(a => a.tutorId === t.matricula);

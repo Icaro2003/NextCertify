@@ -30,21 +30,32 @@ function RelatorioIndividualAluno() {
     const [alunoSelecionado, setAlunoSelecionado] = useState(null);
 
     useEffect(() => {
+        const usuariosMock = authMock.users || [];
+        const usuariosLocal = JSON.parse(localStorage.getItem("usuarios") || "[]");
+        const todosUsuarios = [...usuariosMock, ...usuariosLocal];
+        const listaAlunos = todosUsuarios.filter(u => u.role === 'aluno');
+        setAlunos(listaAlunos);
         const alunoAtual = alunoSelecionado || usuario;
         if (!alunoAtual) return;
 
         const listaGlobalCertificados = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
-        const meusCertificados = listaGlobalCertificados.filter(c => String(c.alunoId) === String(alunoAtual.id));
+        const meusCertificados = listaGlobalCertificados.filter(c => 
+            String(c.alunoId) === String(alunoAtual.id) || String(c.alunoId) === String(alunoAtual.matricula)
+        );
 
         const avaliacoes = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");
-        const minhasAvaliacoes = avaliacoes.filter(a => a.email === alunoAtual.email);
+        const minhasAvaliacoes = avaliacoes.filter(a => 
+            a.email === alunoAtual.email || a.alunoMatricula === alunoAtual.matricula
+        );
+        const ultimoEncontro = minhasAvaliacoes[minhasAvaliacoes.length - 1];
+        const tutorResponsavel = ultimoEncontro ? ultimoEncontro.tutorNome : "Não atribuído";
 
         const metricas = [
             { label: "Tutorando", val: alunoAtual.name, icon: "🧑‍🎓" },
             { label: "Curso", val: alunoAtual.curso || "Não informado", icon: "💻" },
-            { label: "Bolsista", val: "Carlos", icon: "👩‍🏫" },
-            { label: "Encontros Realizados", val: minhasAvaliacoes.length > 0 ? minhasAvaliacoes.length.toString() : "0", icon: "📅" },
-            { label: "Certificados", val: meusCertificados.length > 0 ? meusCertificados.length.toString() : "0", icon: "🏅" },
+            { label: "Tutor Responsável", val: tutorResponsavel, icon: "👩‍🏫" },
+            { label: "Encontros Realizados", val: minhasAvaliacoes.length.toString(), icon: "📅" },
+            { label: "Certificados", val: meusCertificados.length.toString(), icon: "🏅" },
             { label: "Mantém tutoria?", val: minhasAvaliacoes.length > 0 ? (minhasAvaliacoes[minhasAvaliacoes.length - 1].permanecer === 'sim' ? 'Sim' : 'Não') : 'Não informado', icon: "📚" },
             { label: "Maior dificuldade", val: minhasAvaliacoes.length > 0 ? minhasAvaliacoes[minhasAvaliacoes.length - 1].dificuldade : 'Não informado', icon: "🤯" },
             { label: "Avaliação do Tutor", val: minhasAvaliacoes.length > 0 ? `${Math.round(minhasAvaliacoes.reduce((sum, a) => sum + parseInt(a.avaliacaoTutor || 0), 0) / minhasAvaliacoes.length)}%` : 'Não informado', icon: "🏅" }
@@ -79,12 +90,12 @@ function RelatorioIndividualAluno() {
         setDadosDashboard({
             usuario: { name: alunoAtual.name },
             metricas,
-            graficos,
-            experienciaGrafico,
-            horasCertificado
+            graficos: graficos.length > 0 ? graficos : mockData.graficos,
+            experienciaGrafico: experienciaGrafico.length > 0 ? experienciaGrafico : mockData.experienciaGrafico,
+            horasCertificado: horasCertificado.length > 0 ? horasCertificado : mockData.horasCertificado
         });
 
-        setAlunos(authMock.users.filter(u => u.role === 'aluno'));
+        //setAlunos(authMock.users.filter(u => u.role === 'aluno'));
     }, [usuario, alunoSelecionado]);
 
     useEffect(() => {
