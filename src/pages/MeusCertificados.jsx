@@ -24,7 +24,7 @@ function MeusCertificados() {
     useEffect(() => {
         if (!usuario || !token) return;
 
-        if (usuario.aluno.role !== 'student') {
+        if (usuario.role !== 'student') {
             alert("Acesso negado. Esta página é exclusiva para alunos.");
             navigate('/');
         }
