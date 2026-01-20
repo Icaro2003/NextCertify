@@ -31,7 +31,7 @@ function RelatorioIndividualTutor() {
         const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
         const todosUsuarios = [...authMock.users, ...usuariosCadastrados];
         const todosTutores = todosUsuarios.filter(u => u.role === 'tutor');
-        
+
         const nomesRelatorios = [...new Set(relatorioReais.map(r => r.tutorNome))];
         const nomesCadastrados = todosTutores.map(t => t.name);
 
@@ -41,10 +41,10 @@ function RelatorioIndividualTutor() {
 
         // Linha para identificar o tutor atual e gerar os dados dele na dashboard
         const tutorParaExibir = tutorSelecionado || (nomesDropdown.length > 0 ? nomesDropdown[0] : "");
-    
-        const inforTutor = todosTutores.find(t => t.name === tutorParaExibir) || { name: tutorParaExibir }; 
 
-        if(tutorParaExibir){
+        const inforTutor = todosTutores.find(t => t.name === tutorParaExibir) || { name: tutorParaExibir };
+
+        if (tutorParaExibir) {
             const filtrados = relatorioReais.filter(r => r.tutorNome === tutorParaExibir);
             const totalEncontros = filtrados.reduce((acc, curr) => acc + (curr.encontrosTotais || 0), 0);
             const alunosAtendidos = [...new Set(filtrados.map(r => r.aluno))].length;
@@ -54,10 +54,10 @@ function RelatorioIndividualTutor() {
             });
 
             setDadosDashboard({
-                usuario: { 
+                usuario: {
                     name: inforTutor.name,
                     matricula: inforTutor.matricula || "N/A",
-                    curso: inforTutor.curso || "Não informado" 
+                    curso: inforTutor.curso || "Não informado"
                 },
                 metricas: [
                     { label: "Total de Relatórios", val: filtrados.length, icon: "📄" },
@@ -78,8 +78,8 @@ function RelatorioIndividualTutor() {
                     { name: 'Outras', sim: counts.outras, nao: filtrados.length - counts.outras },
                 ],
                 dificuldades: [
-                    { titulo: "Conteúdo", perc: filtrados.length > 0 ? `${((counts.conteudo/filtrados.length)*100).toFixed(0)}%` : "0%", icon: "📚", desc: "Dificuldade técnica" },
-                    { titulo: "Acesso", perc: filtrados.length > 0 ? `${((counts.acesso/filtrados.length)*100).toFixed(0)}%` : "0%", icon: "🌐", desc: "Internet/Plataforma" }
+                    { titulo: "Conteúdo", perc: filtrados.length > 0 ? `${((counts.conteudo / filtrados.length) * 100).toFixed(0)}%` : "0%", icon: "📚", desc: "Dificuldade técnica" },
+                    { titulo: "Acesso", perc: filtrados.length > 0 ? `${((counts.acesso / filtrados.length) * 100).toFixed(0)}%` : "0%", icon: "🌐", desc: "Internet/Plataforma" }
                 ],
                 graficos: [
                     { name: 'Sem 1', online: 2, presencial: 1 }, // Exemplo estático ou processar por data
@@ -100,7 +100,7 @@ function RelatorioIndividualTutor() {
 
         csv += "--- Resumo de Desempenho ---\n";
         csv += "Indicador,Valor\n";
-        dadosDashboard.metricas.forEach(m=> {
+        dadosDashboard.metricas.forEach(m => {
             csv += `${m.label},${m.val}\n`;
         });
         csv += "\n";
@@ -122,7 +122,7 @@ function RelatorioIndividualTutor() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download= `relatorio_individual_tutor_Responsavel:${usuario.name.replace(/\s+/g, '_').toLocaleLowerCase()}.csv`;
+        link.download = `relatorio_individual_tutor_Responsavel:${usuario.name.replace(/\s+/g, '_').toLocaleLowerCase()}.csv`;
         link.click();
     };
 
@@ -142,19 +142,19 @@ function RelatorioIndividualTutor() {
         doc.text(`Emitido por: ${usuario.name} (${cargoEmitente})`, 14, 34);
         doc.text(`Data de Emissão: ${dataAtual}`, 14, 40);
 
-        autoTable(doc,{
+        autoTable(doc, {
             startY: 46,
             head: [['Indicador', 'Valor']],
             body: dadosDashboard.metricas.map(m => [m.label, m.val]),
             headStyles: { fillColor: [26, 86, 219] },
         });
 
-        if(areaGraficos){
-            try{
-                const canvas = await html2canvas(areaGraficos, { scale: 2, useCORS: true, logging:false });
+        if (areaGraficos) {
+            try {
+                const canvas = await html2canvas(areaGraficos, { scale: 2, useCORS: true, logging: false });
                 const imgData = canvas.toDataURL('image/png');
                 const finalYMetricas = doc.lastAutoTable.finalY;
-                if(finalYMetricas > 150) doc.addPage();
+                if (finalYMetricas > 150) doc.addPage();
 
                 const currentY = doc.lastAutoTable.finalY > 150 ? 20 : finalYMetricas + 15;
 
@@ -162,7 +162,7 @@ function RelatorioIndividualTutor() {
                 doc.setTextColor(0);
                 doc.text("Análise Visual dos encontros", 14, currentY);
                 doc.addImage(imgData, 'PNG', 10, currentY + 5, 190, 80);
-            } catch(e) {
+            } catch (e) {
                 console.error("Erro ao capturar gráficos para PDF:", e);
             }
         }
@@ -180,7 +180,7 @@ function RelatorioIndividualTutor() {
         });
 
         const pageCount = doc.internal.getNumberOfPages();
-        for(let i = 1; i <= pageCount; i++){
+        for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(10);
             doc.setTextColor(150);
@@ -205,7 +205,7 @@ function RelatorioIndividualTutor() {
                             <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -225,12 +225,12 @@ function RelatorioIndividualTutor() {
             <Container className="flex-grow-1">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2 className="text-primary fw-bold m-0" style={{ fontSize: '2.2rem' }}>Relatório por Tutor</h2>
-                    
+
                     <div style={{ minWidth: '250px' }}>
                         <Form.Group>
                             <Form.Label className="small fw-bold text-muted text-uppercase">Selecionar Tutor</Form.Label>
-                            <Form.Select 
-                                value={tutorSelecionado} 
+                            <Form.Select
+                                value={tutorSelecionado}
                                 onChange={(e) => setTutorSelecionado(e.target.value)}
                                 className="shadow-sm border-primary"
                             >
@@ -324,7 +324,7 @@ function RelatorioIndividualTutor() {
                                 </Card>
                             </Col>
                         </Row>
-                        
+
                         <div className="d-flex gap-3 mb-5">
                             <Button variant="primary" className="px-5 py-2 fw-bold d-flex align-items-center gap-2 border-0" style={{ backgroundColor: '#1a56db' }} onClick={downloadPDF}>
                                 <FaFilePdf /> Baixar PDF do Tutor

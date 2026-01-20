@@ -8,25 +8,25 @@ import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 function HomeTutor() {
     const navigate = useNavigate();
 
-   const { usuario, handleLogout } = useAuthenticatedUser();
+    const { usuario, handleLogout } = useAuthenticatedUser();
 
     const gradientStyle = {
         background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)',
         color: 'white'
     };
- 
+
     useEffect(() => {
         const savedUser = localStorage.getItem("usuarioLogado");
         const userParsed = savedUser ? JSON.parse(savedUser) : null;
 
-        if(!userParsed){
+        if (!userParsed) {
             navigate('/');
-        } else if(userParsed.role !== 'tutor'){
+        } else if (userParsed.role !== 'tutor') {
             alert("Acesso restrito: Você não tem permissão de tutor.");
 
-            if(userParsed.role === 'coordenador') navigate('/coordenador');
-            else if(userParsed.role === 'bolsista') navigate('/bolsista');
-            else if(userParsed.role === 'aluno') navigate('/aluno');
+            if (userParsed.role === 'coordenador') navigate('/coordenador');
+            else if (userParsed.role === 'bolsista') navigate('/bolsista');
+            else if (userParsed.role === 'aluno') navigate('/aluno');
             else navigate('/');
         }
     }, [navigate]);
@@ -58,7 +58,7 @@ function HomeTutor() {
                             <Nav.Link href="/home-tutor" className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link href="/alunos-tutor" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="/forms-tutor" className="mx-2 text-dark">Formulário de Acompanhamento</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />

@@ -38,7 +38,7 @@ function HomeAluno() {
                             <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
                             <Nav.Link href="/avaliacao-tutoria" className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />

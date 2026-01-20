@@ -44,17 +44,8 @@ function Login() {
         const route = roleRoutes[role];
 
         if (!route) {
-            console.log(`Perfil não definido! ${role}`);
+            navigate("/aluno");
             return;
-        }
-
-        if (route === "/bolsista") {
-            const perfil = localStorage.getItem("perfil");
-
-            if (perfil === "ALUNO") {
-                navigate("/aluno");
-                return;
-            }
         }
 
         navigate(route);
@@ -66,15 +57,21 @@ function Login() {
 
         try {
             const data = await login();
-
             const decoded = jwtDecode(data.token);
+            const cursoAnoSalvo = JSON.parse(localStorage.getItem("curso-ano"));
+            console.log(cursoAnoSalvo);
+
 
             localStorage.setItem("usuarioLogado", JSON.stringify({
                 ...data.usuario,
+                curso: cursoAnoSalvo.curso,
+                curso: cursoAnoSalvo.anoIngresso,
                 role: decoded.role
             }));
 
-            navigateRole(decoded.role);
+            console.log(JSON.parse(localStorage.getItem("usuarioLogado")));
+
+            // navigateRole(decoded.role);
         } catch (error) {
             handleAlert(error?.message || "Usuário não encontrado!");
         }

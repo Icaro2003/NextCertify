@@ -8,30 +8,16 @@ import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function HomeCoordenador() {
     const navigate = useNavigate();
-    const { usuario, handleLogout } = useAuthenticatedUser();
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
 
     const gradientStyle = {
         background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
         color: 'white'
     };
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem("usuarioLogado");
-        const userParsed = savedUser ? JSON.parse(savedUser) : null;
+    const role = userRole(usuario.role);
 
-        if (!userParsed) {
-            navigate('/');
-        } else if (userParsed.role !== 'coordenador') {
-            alert("Acesso restrito: Você não tem permissão de coordenador.");
-
-            if (userParsed.role === 'tutor') navigate('/home-tutor');
-            else if (userParsed.role === 'bolsista') navigate('/bolsista');
-            else if (userParsed.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [navigate]);
-
-    if (!usuario || usuario.role !== 'coordenador') {
+    if (!usuario || role.toLowerCase() !== 'coordenador') {
         return <div className="p-5 text-center">Verificando permissões...</div>;
     }
 
@@ -54,13 +40,13 @@ function HomeCoordenador() {
                             <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
@@ -77,9 +63,9 @@ function HomeCoordenador() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
+                                <h2 className="mb-1 fw-bold">{usuario.nome}</h2>
                                 <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
-                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
+                                {/* <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p> */}
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -93,7 +79,7 @@ function HomeCoordenador() {
 
             <Container className="my-5 flex-grow-1">
                 <div className="mb-5">
-                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.name.split(' ')[0]}</h1>
+                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.nome.split(' ')[0]}</h1>
                     <p className="text-muted fs-5">
                         Aqui você pode realizar upload dos seus certificados e fazer a avaliação do projeto de tutoria.
                     </p>
@@ -163,7 +149,6 @@ function HomeCoordenador() {
                         </Card>
                     </Col>
 
-                    {/*Relatório de Gestão Geral*/}
                     <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>

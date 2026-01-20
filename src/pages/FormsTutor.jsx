@@ -30,11 +30,11 @@ function FormsTutor() {
     useEffect(() => {
         if (!usuario) {
             navigate('/');
-        } else if(usuario.role !== 'tutor'){
+        } else if (usuario.role !== 'tutor') {
             alert("Acesso negado. Está página é exclusiva para tutores.");
-            if(usuario.role === 'coordenador') navigate('/coordenador');
-            else if(userParsed.role === 'bolsista') navigate('/bolsista');
-            else if(userParsed.role === 'aluno') navigate('/aluno');
+            if (usuario.role === 'coordenador') navigate('/coordenador');
+            else if (userParsed.role === 'bolsista') navigate('/bolsista');
+            else if (userParsed.role === 'aluno') navigate('/aluno');
             else navigate('/');
         }
     }, [usuario, navigate]);
@@ -84,7 +84,7 @@ function FormsTutor() {
                             <Nav.Link href="/home-tutor" className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link href="/alunos-tutor" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="/forms-tutor" className="mx-2 text-dark fw-bold">Formulário de Acompanhamento</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -133,13 +133,13 @@ function FormsTutor() {
                             <Col md={6}>
                                 <Form.Group controlId="formAluno">
                                     <Form.Label className="text-primary fw-medium">Tutorando</Form.Label>
-                                    <Form.Control type="text" value={formData.aluno} onChange={(e) => setFormData({...formData, aluno: e.target.value})} placeholder="Nome do aluno"/>
+                                    <Form.Control type="text" value={formData.aluno} onChange={(e) => setFormData({ ...formData, aluno: e.target.value })} placeholder="Nome do aluno" />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group controlId="formEncontrosVirtuais">
                                     <Form.Label className="text-primary fw-medium">Quantidade de encontros virtuais</Form.Label>
-                                    <Form.Control type="number" value={formData.virtuais} onChange={(e) => setFormData({...formData, virtuais: e.target.value})} />
+                                    <Form.Control type="number" value={formData.virtuais} onChange={(e) => setFormData({ ...formData, virtuais: e.target.value })} />
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -148,13 +148,13 @@ function FormsTutor() {
                             <Col md={6}>
                                 <Form.Group controlId="formEncontrosPresenciais">
                                     <Form.Label className="text-primary fw-medium">Quantidade de encontros presenciais</Form.Label>
-                                    <Form.Control type="number" value={formData.presenciais} onChange={(e) => setFormData({...formData, presenciais: e.target.value})} />
+                                    <Form.Control type="number" value={formData.presenciais} onChange={(e) => setFormData({ ...formData, presenciais: e.target.value })} />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group controlId="formDificuldades">
                                     <Form.Label className="text-primary fw-medium">Dificuldades dos alunos</Form.Label>
-                                    <Form.Select value={formData.dificuldadeTipo} onChange={(e) => setFormData({...formData, dificuldadeTipo: e.target.value})}>
+                                    <Form.Select value={formData.dificuldadeTipo} onChange={(e) => setFormData({ ...formData, dificuldadeTipo: e.target.value })}>
                                         <option>Selecionar</option>
                                         <option value="nenhuma">Nenhuma dificuldade</option>
                                         <option value="conteudo">Dificuldade com conteúdo</option>
@@ -167,7 +167,7 @@ function FormsTutor() {
 
                         <Form.Group className="mb-4" controlId="formDescricao">
                             <Form.Label className="text-primary fw-medium">Descrição Detalhada</Form.Label>
-                            <Form.Control as="textarea" rows={6} style={{ resize: 'none' }} value={formData.descricao} onChange={(e) => setFormData({...formData, descricao: e.target.value})} placeholder="Descreva aqui qualquer outra dificuldade do aluno" />
+                            <Form.Control as="textarea" rows={6} style={{ resize: 'none' }} value={formData.descricao} onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} placeholder="Descreva aqui qualquer outra dificuldade do aluno" />
                         </Form.Group>
 
                         <div className="d-flex justify-content-end">

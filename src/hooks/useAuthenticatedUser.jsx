@@ -16,7 +16,7 @@ function useAuthenticatedUser() {
     }, [navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
+        localStorage.clear();
         navigate('/');
     };
 
@@ -27,14 +27,6 @@ function useAuthenticatedUser() {
             tutor: "Tutor",
             coordinator: "Coordenador"
         };
-
-        if (role === "scholarship_holder") {
-            const perfil = localStorage.getItem("perfil");
-
-            if (perfil === "ALUNO") {
-                return "Aluno";
-            }
-        }
 
         return roleNames[role];
     };

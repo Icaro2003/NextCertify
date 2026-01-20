@@ -16,20 +16,20 @@ function HomeBolsista() {
     };
 
     useEffect(() => {
-            const savedUser = localStorage.getItem("usuarioLogado");
-            const userParsed = savedUser ? JSON.parse(savedUser) : null;
-    
-            if(!userParsed){
-                navigate('/');
-            } else if(userParsed.role !== 'bolsista'){
-                alert("Acesso restrito: Você não tem permissão de bolsista.");
-    
-                if(userParsed.role === 'tutor') navigate('/home-tutor');
-                else if(userParsed.role === 'coordenador') navigate('/coordenador');
-                else if(userParsed.role === 'aluno') navigate('/aluno');
-                else navigate('/');
-            }
-        }, [navigate]);
+        const savedUser = localStorage.getItem("usuarioLogado");
+        const userParsed = savedUser ? JSON.parse(savedUser) : null;
+
+        if (!userParsed) {
+            navigate('/');
+        } else if (userParsed.role !== 'bolsista') {
+            alert("Acesso restrito: Você não tem permissão de bolsista.");
+
+            if (userParsed.role === 'tutor') navigate('/home-tutor');
+            else if (userParsed.role === 'coordenador') navigate('/coordenador');
+            else if (userParsed.role === 'aluno') navigate('/aluno');
+            else navigate('/');
+        }
+    }, [navigate]);
 
     if (!usuario || usuario.role !== 'bolsista') {
         return <div className="p-5 text-center">Verificando permissões...</div>;
@@ -54,7 +54,7 @@ function HomeBolsista() {
                             <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
                             <Nav.Link href="/predefinicoes" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -79,7 +79,7 @@ function HomeBolsista() {
                             <div>
                                 <h2 className="mb-1 fw-bold">{usuario.name}</h2>
                                 <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
-                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
+                                {/* <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p> */}
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -166,7 +166,7 @@ function HomeBolsista() {
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }} />
                                 </div>
                                 <h3 className="text-primary fw-bold mb-3">Relatório individual Acompanhamento dos Tutores</h3>
                                 <p className="text-muted mb-4">Relatório individual de acompanhamento dos tutores</p>
@@ -238,7 +238,7 @@ function HomeBolsista() {
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
-                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }}/>
+                                    <FaFileAlt size={60} className="mb-3" style={{ color: "#e10d0d" }} />
                                 </div>
                                 <h3 className="text-primary fw-bold mb-3">Relatório Acompanhamento geral do tutor</h3>
                                 <p className="text-muted mb-4">Relatório de acompanhamento geral do tutor</p>

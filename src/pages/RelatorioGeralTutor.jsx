@@ -38,9 +38,9 @@ function RelatorioGeralTutor() {
         const listaTutores = todosUsuarios.filter(u => u.role === 'tutor');
         const listaAlunos = todosUsuarios.filter(u => u.role === 'aluno');
 
-       const totalTutorandos = new Set([...relatorios.map(r => r.aluno), ...listaAlunos.map(a => a.name)]).size;
-       const totalEncontros = relatorios.reduce((sum, r) => sum + (r.encontrosTotais || 0), 0);
-       const totalTutores = listaTutores.length;
+        const totalTutorandos = new Set([...relatorios.map(r => r.aluno), ...listaAlunos.map(a => a.name)]).size;
+        const totalEncontros = relatorios.reduce((sum, r) => sum + (r.encontrosTotais || 0), 0);
+        const totalTutores = listaTutores.length;
 
         const metricas = [
             { label: "Tutorandos", val: totalTutorandos.toString(), icon: "🧑‍🎓" },
@@ -69,8 +69,8 @@ function RelatorioGeralTutor() {
             id: u.matricula || u.id,
             nome: u.name,
             encontros: relatorios.filter(r => r.matricula === u.matricula).reduce((sum, r) => sum + (r.encontrosTotais || 0), 0),
-            semestre: u.semestre || "2026.1"            
-        }));        
+            semestre: u.semestre || "2026.1"
+        }));
 
         // Experiência gráfico
         const experienciaPorMes = {};
@@ -146,7 +146,7 @@ function RelatorioGeralTutor() {
         csv += "Indicador,Valor\n";
         dadosDashboard.metricas.forEach(m => {
             csv += `"${m.label}","${m.val}"\n`;
-        })
+        });
         csv += "\n";
 
         csv += "--- Lista de Tutores ---\n";
@@ -184,7 +184,7 @@ function RelatorioGeralTutor() {
 
     const downloadPDF = async () => {
         const areaGraficos = document.getElementById('area-graficos');
-    
+
         if (!areaGraficos) {
             alert("Erro: Área de gráficos não encontrada.");
             return;
@@ -192,7 +192,7 @@ function RelatorioGeralTutor() {
         const doc = new jsPDF();
         const dataAtual = new Date().toLocaleDateString();
         const cargo = usuario.role === 'coordenador' ? 'Coordenador' : 'Bolsista';
-        
+
         doc.setFontSize(18);
         doc.setTextColor(26, 86, 219);
         doc.text("Relatório Geral do Tutor - NEXTCERTIFY", 14, 20);
@@ -208,21 +208,21 @@ function RelatorioGeralTutor() {
             headStyles: { fillColor: [26, 86, 219] },
         });
 
-        if(areaGraficos) {
+        if (areaGraficos) {
             try {
-                const canvas = await html2canvas(areaGraficos, { 
+                const canvas = await html2canvas(areaGraficos, {
                     scale: 2,
-                    useCORS: true 
+                    useCORS: true
                 });
                 const imgData = canvas.toDataURL('image/png');
-                
+
                 doc.addPage();
                 doc.setFontSize(14);
                 doc.setTextColor(0);
                 doc.text("Análise Visual de Desempenho", 14, 15);
                 doc.addImage(imgData, 'PNG', 10, 25, 160, 100);
-                } catch (error) {
-                    console.error("Erro ao capturar gráficos:", error);
+            } catch (error) {
+                console.error("Erro ao capturar gráficos:", error);
             }
         }
 
@@ -244,7 +244,7 @@ function RelatorioGeralTutor() {
         });
 
         const pageCount = doc.internal.getNumberOfPages();
-        for(let i = 1; i <= pageCount; i++){
+        for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(10);
             doc.setTextColor(150);
@@ -269,7 +269,7 @@ function RelatorioGeralTutor() {
                             <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
