@@ -1,14 +1,14 @@
 import { Container, Row, Col, Button, Navbar, Nav, Badge, Image, Table } from 'react-bootstrap';
 import { FaBell, FaUserCircle, FaSignOutAlt, FaPen, FaFileAlt, FaEye } from 'react-icons/fa';
-import { useNavigate, useLocation } from 'react-router-dom'; // Adicionado useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LogoNextCertify from '../img/NextCertify.png';
-import alunoTutor from '../mocks/aluno-tutor-mock.json';
+import mockAut from '../mocks/auth-mock.json';
 
 function AlunosTutor() {
     const navigate = useNavigate();
-    const location = useLocation(); 
-    
+    const location = useLocation();
+
     const relatoriosSalvos = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
 
     const [usuario] = useState(() => {
@@ -19,15 +19,15 @@ function AlunosTutor() {
     const listaAlunos = alunoTutor
         .filter(aluno => aluno.tutorMatricula === usuario?.matricula)
         .map(aluno => {
-            const relatoriosDoAluno = relatoriosSalvos.filter(r => 
+            const relatoriosDoAluno = relatoriosSalvos.filter(r =>
                 r.aluno.trim().toLowerCase() === aluno.nome.trim().toLowerCase()
             );
-            const ultimaDataReal = relatoriosDoAluno.length > 0 
-                ? relatoriosDoAluno[relatoriosDoAluno.length - 1].data 
+            const ultimaDataReal = relatoriosDoAluno.length > 0
+                ? relatoriosDoAluno[relatoriosDoAluno.length - 1].data
                 : (aluno.ultimaData || "Sem preenchimento");
 
             return { ...aluno, ultimaData: ultimaDataReal };
-    });
+        });
 
     useEffect(() => {
         if (!usuario) {
@@ -58,7 +58,6 @@ function AlunosTutor() {
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-            {/* --- NAVBAR --- */}
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#" className="d-flex align-items-center">
@@ -67,10 +66,10 @@ function AlunosTutor() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark" style={{cursor: 'pointer'}}>Home</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark fw-bold" style={{cursor: 'pointer'}}>Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark" style={{cursor: 'pointer'}}>Formulário</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark" style={{cursor: 'pointer'}}>Contato</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Formulário</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark">Relatórios</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -144,20 +143,20 @@ function AlunosTutor() {
                                         </td>
                                         <td className="text-end">
                                             <div className="d-flex justify-content-end gap-2">
-                                                <Button 
-                                                    variant="outline-primary" 
+                                                <Button
+                                                    variant="outline-primary"
                                                     size="sm"
                                                     onClick={() => navigate('/forms-tutor', { state: { alunoNome: aluno.nome, matricula: aluno.matricula } })}
                                                 >
-                                                    <FaFileAlt className="me-1"/> Novo Form
+                                                    <FaFileAlt className="me-1" /> Novo Form
                                                 </Button>
-                                                <Button 
-                                                    variant="primary" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
                                                     style={{ backgroundColor: '#0f52ba' }}
                                                     onClick={() => navigate('/relatorios-tutor', { state: { alunoId: aluno.id, nome: aluno.nome } })}
                                                 >
-                                                    <FaEye className="me-1"/> Ver Histórico
+                                                    <FaEye className="me-1" /> Ver Histórico
                                                 </Button>
                                             </div>
                                         </td>

@@ -5,9 +5,9 @@ import { MdSupportAgent } from "react-icons/md";
 import LoginIgm from '../img/login.png';
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
+import login from "../services/authService";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
-import { jwtDecode } from 'jwt-decode';
 
 function Login() {
     const navigate = useNavigate();
@@ -51,9 +51,11 @@ function Login() {
         navigate(route);
     };
 
+    //const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+       // setLoading(true);
 
         try {
             const data = await login();
@@ -73,8 +75,10 @@ function Login() {
 
             navigateRole(decoded.role);
         } catch (error) {
-            handleAlert(error?.message || "Usuário não encontrado!");
-        }
+            handleAlert(error.message);
+        } //finally {
+           // setLoading(false);
+       // }
     };
 
     return (

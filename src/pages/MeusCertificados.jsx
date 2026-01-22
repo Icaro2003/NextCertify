@@ -1,4 +1,4 @@
-import { Container, Row, Col, Card, Button, Navbar, Nav, Form, Image, Modal, Badge, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Navbar, Nav, Form, Image, Modal, Badge, Alert, ProgressBar } from 'react-bootstrap';
 import { FaBell, FaUserCircle, FaCloudUploadAlt, FaCalendarAlt, FaClock, FaDownload, FaTrash, FaExclamationTriangle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
@@ -9,6 +9,8 @@ import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 function MeusCertificados() {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
+    const [regrasHoras, setRegrasHoras] = useState({});
+    const [vinculoAtivo, setVinculosAtivo] = useState(null);
 
     const { usuario, handleLogout } = useAuthenticatedUser();
     const [certificados, setCertificados] = useState([]);
@@ -16,14 +18,41 @@ function MeusCertificados() {
 
     const [showModal, setShowModal] = useState(false);
     const [tempFileData, setTempFileData] = useState(null);
-    const [formData, setFormData] = useState({ titulo: '', periodo: '', horas: '' });
+    const [formData, setFormData] = useState({ titulo: '', periodo: '', horas: '', categoria: '' });
+    const [resumoHoras, setResumoHoras] = useState({ aprovadas: 0, meta: 100, faltam: 100, progresso: 0 });
 
+    /*useEffect(() => {
+        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+        if (usuarioLogado) setUsuario(usuarioLogado);
+    }, []);*/
 
     useEffect(() => {
         if (!usuario) return;
         const listaGlobal = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
+        const horasSalvas = JSON.parse(localStorage.getItem("predefinicoes_horas") || "{}");
+        setRegrasHoras(horasSalvas);
 
-        const meusCertificados = listaGlobal.filter(c => String(c.alunoId) === String(usuario.id)).map(c => {
+        const vinculos = JSON.parse(localStorage.getItem("vinculos_tutoria") || "[]");
+        const meuVinculo = vinculos.find(v => v.alunoNome === usuario?.name);
+        setVinculosAtivo(meuVinculo);
+
+        const meusCertificadosBrutos = listaGlobal.filter(c => String(c.alunoId) === String(usuario.id));
+        const metaDefinida = regrasHoras[usuario.role] || 100;
+        const horasAprovadas = meusCertificadosBrutos.filter(c => c.status === 'aprovado').reduce((acc, curr) => acc + (Number(curr.horas) || 0), 0);
+
+        setResumoHoras({
+            aprovadas: horasAprovadas,
+            meta: metaDefinida,
+            faltam: Math.max(0, metaDefinida - horasAprovadas),
+            progresso: Math.min(regrasHoras, (horasAprovadas / metaDefinida) * regrasHoras)
+        });
+
+        const formatados = meusCertificadosBrutos.map(c => ({
+            ...c,
+            status: c.status === 'pendente' ? 'Em espera' : (c.status === 'negado' ? 'Negado' : 'Aprovado')
+        }))
+
+        /*const meusCertificados = listaGlobal.filter(c => String(c.alunoId) === String(usuario.id)).map(c => {
             let statusExibicao = c.status;
             if (c.status === 'pendente') statusExibicao = 'Em espera';
             if (c.status === 'negado') statusExibicao = 'Negado';
@@ -33,8 +62,10 @@ function MeusCertificados() {
                 ...c,
                 status: statusExibicao
             };
-        });
-        setCertificados(meusCertificados);
+        });*/
+
+        //setCertificados(meusCertificados);
+        setCertificados(formatados);
     }, [usuario]);
 
     const persist = (listaAtualizada) => {
@@ -52,8 +83,9 @@ function MeusCertificados() {
             status: c.status === 'Em espera' ? 'pendente' : (c.status === 'Negado' ? 'negado' : 'aprovado')
         }));
 
-        const novaListaGlobal = [...listaSemOsMeus, ...certificadosComInfo];
-        localStorage.setItem("lista_global_certificados", JSON.stringify(novaListaGlobal));
+        //const novaListaGlobal = [...listaSemOsMeus, ...certificadosComInfo];
+        localStorage.setItem("lista_global_certificados", JSON.stringify([...listaSemOsMeus, ...certificadosComInfo]));
+        setUsuario({...usuario});
     };
 
     const handleFileSelect = () => {
@@ -68,7 +100,7 @@ function MeusCertificados() {
         const reader = new FileReader();
         reader.onload = () => {
             setTempFileData({ name: file.name, data: reader.result });
-            setFormData({ titulo: file.name, periodo: '', horas: '' });
+            setFormData({ titulo: file.name, periodo: '', horas: '', categoria: '' });
             setShowModal(true);
         };
         reader.readAsDataURL(file);
@@ -76,14 +108,26 @@ function MeusCertificados() {
     };
 
     const handleConfirmUpload = () => {
-        if (!formData.periodo || !formData.horas) {
-            alert("Por favor, preencha a data e a carga horária.");
+        if (!formData.periodo || !formData.horas || !formData.categoria) {
+            alert("Por favor, preencha a data e a carga horária, incluindo a categoria.");
             return;
+        }
+
+        if(vinculoAtivo){
+            const dataCertificado = new Date(formData.periodo);
+            const dataInicio = new Date(vinculoAtivo.dataInicio);
+            const dataFim = new Date(vinculoAtivo.dataFim);
+
+            if(dataCertificado < dataInicio || dataCertificado > dataFim){
+                alert(`Atenção: A data do certificado deve estar entre ${vinculoAtivo.dataInicio} e ${vinculoAtivo.dataFim} (seu período de tutoria)`);
+                return;
+            }
         }
 
         const novo = {
             id: Date.now(),
             titulo: formData.titulo,
+            categoria: formData.categoria,
             status: 'Em espera',
             periodo: formData.periodo,
             horas: formData.horas,
@@ -111,8 +155,7 @@ function MeusCertificados() {
         link.download = cert.fileName || cert.titulo;
         link.click();
     };
-
-    // Função revisada para aceitar variações de texto
+    
     const getBadgeVariant = (status) => {
         const s = status?.toLowerCase();
         if (s === 'aprovado') return 'success';
@@ -137,10 +180,10 @@ function MeusCertificados() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
-                            <Nav.Link href="/avaliacao-tutoria" className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
-
+                            <Nav.Link onClick={() => navigate('/aluno')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link className="mx-2 text-dark fw-bold">Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/avaliacao-tutoria')} className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -157,7 +200,36 @@ function MeusCertificados() {
                 </Container>
             </Navbar>
 
+
             <Container className="my-5 flex-grow-1">
+                <Card className="border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                    <Card.Body className="p-4">
+                        <Row className="align-items-center">
+                            <Col md={6}>
+                                <h4 className="fw-bold text-primary mb-1">Meu Progresso</h4>
+                                <p className="text-muted small">Acompanhe suas horas complementares aprovadas</p>
+                                <div className="d-flex align-items-baseline gap-2 mt-3">
+                                    <h2 className="fw-bold mb-0 text-success">{resumoHoras.aprovadas}h</h2>
+                                    <span className="text-muted fw-medium">de {resumoHoras.meta}h necessárias</span>
+                                </div>
+                            </Col>
+                            <Col md={6} className="text-md-end mt-3 mt-md-0">
+                                <div className="mb-2 fw-bold text-dark">
+                                    {resumoHoras.faltam > 0 
+                                        ? `Faltam cumprir: ${resumoHoras.faltam} horas` 
+                                        : "Meta atingida! Parabéns! 🎉"}
+                                </div>
+                                <ProgressBar 
+                                    now={resumoHoras.progresso} 
+                                    variant={resumoHoras.progresso === 100 ? "success" : "primary"} 
+                                    className="rounded-pill shadow-sm" 
+                                    style={{ height: '12px' }}
+                                />
+                            </Col>
+                        </Row>
+                    </Card.Body>
+                </Card>
+
                 <div className="mb-4">
                     <h1 className="text-primary fw-bold mb-3">Meus Certificados</h1>
                     <Button variant="primary" className="d-flex align-items-center gap-2 px-4 py-2 fw-medium shadow-sm" onClick={handleFileSelect}>
@@ -174,6 +246,9 @@ function MeusCertificados() {
                                     <Col lg={8}>
                                         <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
                                             <h5 className="text-primary fw-bold mb-0">{cert.titulo}</h5>
+                                            <Badge bg="info" className="px-2 py-1 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px'}}>
+                                                {cert.categoria || 'Geral'}
+                                            </Badge>
                                             <Badge bg={getBadgeVariant(cert.status)} className="px-3 py-2">
                                                 {cert.status}
                                             </Badge>
@@ -182,8 +257,6 @@ function MeusCertificados() {
                                             <span><FaCalendarAlt className="me-1 text-primary" /> {cert.periodo}</span>
                                             <span><FaClock className="me-1 text-primary" /> {cert.horas}h</span>
                                         </div>
-
-                                        {/* AQUI APARECE A JUSTIFICATIVA SE ESTIVER NEGADO */}
                                         {cert.status === 'Negado' && (
                                             <Alert variant="danger" className="mt-3 py-2 px-3 d-flex align-items-start gap-2 border-0 shadow-sm">
                                                 <FaExclamationTriangle className="mt-1" />
@@ -211,7 +284,6 @@ function MeusCertificados() {
             </Container>
 
             <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-                {/* ... (Modal Header, Body, Footer permanecem iguais) */}
                 <Modal.Header closeButton className="border-0">
                     <Modal.Title className="text-primary fw-bold">Detalhes do Certificado</Modal.Title>
                 </Modal.Header>
@@ -221,11 +293,25 @@ function MeusCertificados() {
                             <Form.Label className="fw-bold small">Título / Nome do Curso</Form.Label>
                             <Form.Control type="text" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} />
                         </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="fw-bold small">Categoria Certificado</Form.Label>
+                            <Form.Select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})}>
+                                <option value="">Selecione a categoria...</option>
+                                <option value="estudos">Estudos individuais (Máx sugerido: {regrasHoras.estudos}h)</option>
+                                <option value="monitoria">Monitoria (Máx sugerido: {regrasHoras.monitoria}h)</option>
+                                <option value="evento">Eventos (Máx sugerido: {regrasHoras.evento}h)</option>
+                            </Form.Select>
+                        </Form.Group>
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fw-bold small">Data de Conclusão</Form.Label>
-                                    <Form.Control type="date" onChange={(e) => setFormData({ ...formData, periodo: e.target.value })} />
+                                    <Form.Control type="date" value={formData.periodo} onChange={(e) => setFormData({...formData, periodo: e.target.value})} />
+                                        {vinculoAtivo && (
+                                            <Form.Text className="text-muted" style={{fontSize: '0.7rem'}}>
+                                                Válido entre: {vinculoAtivo.dataInicio} e {vinculoAtivo.dataFim}
+                                            </Form.Text>
+                                        )}
                                 </Form.Group>
                             </Col>
                             <Col md={6}>

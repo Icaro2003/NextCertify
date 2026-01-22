@@ -32,7 +32,7 @@ function RelatorioGeralAluno() {
         if (!usuario) return;
         const relatoriosTutores = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
         const certificadosGlobais = JSON.parse(localStorage.getItem("lista_global_certificados") || "[]");
-        const avaliacoesAlunos = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");  
+        const avaliacoesAlunos = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");
         const usuariosCadastrados = JSON.parse(localStorage.getItem("usuarios") || "[]");
         const usuariosMock = Array.isArray(mockAut) ? mockAut : (mockAut.users || mockAut.usuarios || []);
         const listaUsuarios = [...usuariosMock, ...usuariosCadastrados];
@@ -40,14 +40,14 @@ function RelatorioGeralAluno() {
         const tutoresReal = listaUsuarios.filter(u => u.role === 'tutor').map(t => {
             const notasDesteTutor = avaliacoesAlunos.filter(a => a.tutorId === t.matricula);
             const somaNotas = notasDesteTutor.reduce((acc, curr) => acc + Number(curr.avaliacaoTutor), 0);
-            const media = notasDesteTutor.length > 0 
-                ? (somaNotas / notasDesteTutor.length).toFixed(1) 
+            const media = notasDesteTutor.length > 0
+                ? (somaNotas / notasDesteTutor.length).toFixed(1)
                 : "N/A";
             return {
                 id: t.matricula || "TUT-00",
                 nome: t.name,
                 encontros: relatoriosTutores.filter(r => r.tutorNome === t.name).length,
-                avaliacao: media 
+                avaliacao: media
             };
         });
 
@@ -72,7 +72,7 @@ function RelatorioGeralAluno() {
             metricas: metricasAtualizadas,
             tutorandos: tutorandosReal,
             tutores: tutoresReal,
-            avaliacaoTutores: tutoresReal.filter(t => t.avaliacao !== "N/A") 
+            avaliacaoTutores: tutoresReal.filter(t => t.avaliacao !== "N/A")
         });
     }, [usuario]);
 
@@ -115,7 +115,7 @@ function RelatorioGeralAluno() {
             csv += `"${d.titulo}", "${d.desc}", "${d.perc}"\n`;
         });
 
-        const blob = new Blob([csv], { type: "text/csv;charset=urf-8;"});
+        const blob = new Blob([csv], { type: "text/csv;charset=urf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         const dataArquivo = new Date().toISOString().split('T')[0];
@@ -168,10 +168,11 @@ function RelatorioGeralAluno() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+                            <Nav.Link onClick={() => navigate(usuario.role === 'coordenador' ? '/coordenador' : '/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" />

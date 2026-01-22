@@ -37,14 +37,14 @@ function ValidarCertificados() {
 
         //Os certificados serão inicializados com o status de observação vazia
         //POR FAVOR NÃO APAGAR ESSA PARTE DO CÓDIGO ATÉ AUTORIZAÇÃO FINAL
-            const listaGlobal = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
+        const listaGlobal = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
 
-            if(listaGlobal.length === 0 && mockCertificados) {
-                const iniciais = mockCertificados.map(c => ({ ...c, status: 'pendente', observacao: ''}));
-                setCertificados(iniciais);
-            } else {
-                setCertificados(listaGlobal);
-            }
+        if (listaGlobal.length === 0 && mockCertificados) {
+            const iniciais = mockCertificados.map(c => ({ ...c, status: 'pendente', observacao: '' }));
+            setCertificados(iniciais);
+        } else {
+            setCertificados(listaGlobal);
+        }
     }, [navigate]);
 
     const handleLogout = () => {
@@ -54,14 +54,14 @@ function ValidarCertificados() {
 
 
     const handleVerPDF = (cert) => {
-        if(!cert.fileData) {
+        if (!cert.fileData) {
             alert("Arquivo não encontrado ou corrompido.");
             return;
         }
 
         try {
             // Se estiver em formato Base64 (Data URL), será aberto diretamente
-            if(cert.fileData.startsWith('data:')){
+            if (cert.fileData.startsWith('data:')) {
                 const novaAba = window.open();
                 novaAba.document.write(
                     `<iframe src="${cert.fileData}" frameborder="0" style="border:0; top:0px left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`
@@ -80,7 +80,7 @@ function ValidarCertificados() {
     };
 
     const handleAprovar = (id) => {
-        const novaLista = certificados.map(c => c.id === id ? { ...c, status: 'aprovado', observacao: '' } : c );
+        const novaLista = certificados.map(c => c.id === id ? { ...c, status: 'aprovado', observacao: '' } : c);
         setCertificados(novaLista);
         salvarCertificados(novaLista);
     };
@@ -95,7 +95,7 @@ function ValidarCertificados() {
             alert("Por favor, descreva ou selecione o motivo da rejeição");
             return;
         }
-        const novaLista = certificados.map(c => c.id === certSelecionado.id ? { ...c, status: 'negado', motivo: motivoNegativa } : c );
+        const novaLista = certificados.map(c => c.id === certSelecionado.id ? { ...c, status: 'negado', motivo: motivoNegativa, observacao: motivoNegativa } : c );
         setCertificados(novaLista);
         salvarCertificados(novaLista);
         fecharModal();
@@ -125,7 +125,7 @@ function ValidarCertificados() {
                             <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
                             <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -201,7 +201,12 @@ function ValidarCertificados() {
                                     <Card.Body className="p-4">
                                         <Row className="align-items-center">
                                             <Col md={7}>
-                                                <h5 className="fw-bold text-dark mb-1">{cert.titulo}</h5>
+                                                <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                    <h5 className="fw-bold text-dark mb-1">{cert.titulo}</h5>
+                                                    <Badge bg="info" className="px-2 py-1 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px'}}>
+                                                        {cert.categoria || 'Geral'}
+                                                    </Badge>
+                                                </div>
                                                 <div className="text-muted fw-bold small mb-1">
                                                     Aluno: <span className="text-dark">{cert.alunoNome || "Não informado"}</span>
                                                 </div>

@@ -15,6 +15,7 @@ import authMock from '/src/mocks/auth-mock.json';
 function RelatorioIndividualAluno() {
     const navigate = useNavigate();
     const { usuario, setUsuario, handleLogout } = useAuthenticatedUser();
+    const [ resumo, setResumoHoras ] = useState({ totolAprovado: 0, meta: 100, restante: 100 });
 
     const [dadosDashboard, setDadosDashboard] = useState({
         usuario: { name: "" },
@@ -39,12 +40,12 @@ function RelatorioIndividualAluno() {
         if (!alunoAtual) return;
 
         const listaGlobalCertificados = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
-        const meusCertificados = listaGlobalCertificados.filter(c => 
+        const meusCertificados = listaGlobalCertificados.filter(c =>
             String(c.alunoId) === String(alunoAtual.id) || String(c.alunoId) === String(alunoAtual.matricula)
         );
 
         const avaliacoes = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");
-        const minhasAvaliacoes = avaliacoes.filter(a => 
+        const minhasAvaliacoes = avaliacoes.filter(a =>
             a.email === alunoAtual.email || a.alunoMatricula === alunoAtual.matricula
         );
         const ultimoEncontro = minhasAvaliacoes[minhasAvaliacoes.length - 1];
@@ -61,16 +62,32 @@ function RelatorioIndividualAluno() {
             { label: "Avaliação do Tutor", val: minhasAvaliacoes.length > 0 ? `${Math.round(minhasAvaliacoes.reduce((sum, a) => sum + parseInt(a.avaliacaoTutor || 0), 0) / minhasAvaliacoes.length)}%` : 'Não informado', icon: "🏅" }
         ];
 
-        const horasPorMes = {};
         meusCertificados.forEach(cert => {
-            const mes = new Date(cert.periodo).toLocaleString('default', { month: 'short' });
-            if (!horasPorMes[mes]) horasPorMes[mes] = { estudos: 0, eventos: 0, monitoria: 0 };
-            const categoria = cert.titulo.toLowerCase().includes('estudo') ? 'estudos' : cert.titulo.toLowerCase().includes('evento') ? 'eventos' : 'monitoria';
-            horasPorMes[mes][categoria] += parseInt(cert.horas) || 0;
-        });
-        const horasCertificado = Object.keys(horasPorMes).length > 0 ? Object.keys(horasPorMes).map(mes => ({ name: mes, ...horasPorMes[mes] })) : mockData.horasCertificado; // Fallback to mock if no data
+            const dataRef = cert.dataEnvio || cert.periodo;
+            const dataObj = new Date(dataRef);
+            const mes = dataObj.toLocaleString('default', { month: 'short' });
+            if (!horasPorMes[mes]) {
+                horasPorMes[mes] = { estudos: 0, eventos: 0, monitoria: 0 };
+            }
+            /*const categoria = cert.titulo.toLowerCase().includes('estudo') ? 'estudos' : cert.titulo.toLowerCase().includes('evento') ? 'eventos' : 'monitoria';
+            horasPorMes[mes][categoria] += parseInt(cert.horas) || 0;*/
+            const titulo = cert.titulo.toLowerCase();
+            const categoriaOriginal = cert.categoria ? cert.categoria.toLowerCase() : "";
 
+            if(categoriaOriginal.includes('estudo') || titulo.includes('estudo')){
+                horasPorMes[mes].estudos += parseInt(cert.horas) || 0;
+            } else if (categoriaOriginal.includes('evento') || titulo.includes('evento')){
+                horasPorMes[mes].eventos += parseInt(cert.horas) || 0;
+            } else if (categoriaOriginal.includes('monitoria') || titulo.includes('monitoria')){
+                horasPorMes[mes].monitoria += parseInt(cert.horas) || 0;
+            }
+        });
+        
+        const listaMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+        //const horasCertificado = Object.keys(horasPorMes).length > 0 ? Object.keys(horasPorMes).map(mes => ({ name: mes, ...horasPorMes[mes] })) : mockData.horasCertificado; // Fallback to mock if no data
+        const horasCertificadoFinal = Object.values(horasPorMes).sort((a, b) => listaMeses.indexOf(a.name) - listaMeses.indexOf(b.name));
         const experienciaPorMes = {};
+        
         minhasAvaliacoes.forEach(av => {
             const mes = new Date(av.data).toLocaleString('default', { month: 'short' });
             if (!experienciaPorMes[mes]) experienciaPorMes[mes] = { boa: 0, ruim: 0 };
@@ -87,19 +104,27 @@ function RelatorioIndividualAluno() {
         });
         const graficos = Object.keys(encontrosPorMes).length > 0 ? Object.keys(encontrosPorMes).map(mes => ({ name: mes, ...encontrosPorMes[mes] })) : mockData.graficos;
 
-        setDadosDashboard({
+        /*setDadosDashboard({
             usuario: { name: alunoAtual.name },
             metricas,
             graficos: graficos.length > 0 ? graficos : mockData.graficos,
             experienciaGrafico: experienciaGrafico.length > 0 ? experienciaGrafico : mockData.experienciaGrafico,
             horasCertificado: horasCertificado.length > 0 ? horasCertificado : mockData.horasCertificado
-        });
+        });*/
+
+        setDadosDashboard(prev => ({
+            ...prev,
+            metricas,
+            graficos: graficos.length > 0 ? graficos : mockData.graficos,
+            experienciaGrafico: experienciaGrafico.length > 0 ? experienciaGrafico : mockData.experienciaGrafico,
+            horasCertificado: horasCertificadoFinal.length > 0 ? horasCertificadoFinal : mockData.horasCertificado
+        }));
 
         //setAlunos(authMock.users.filter(u => u.role === 'aluno'));
     }, [usuario, alunoSelecionado]);
 
     useEffect(() => {
-        setFilteredAlunos(alunos.filter(aluno => 
+        setFilteredAlunos(alunos.filter(aluno =>
             aluno.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             aluno.matricula.includes(searchTerm)
         ));
@@ -108,7 +133,7 @@ function RelatorioIndividualAluno() {
     const downloadCSV = () => {
         const alunoAlvo = alunoSelecionado || usuario;
         const cargoEmitente = usuario.role === 'coordenador' ? 'Coordenador' : 'Bolsista';
-        
+
         let csv = `--- Relatório Individual do Aluno - NEXTCERTIFY ---\n`;
         csv += `Aluno: ${alunoAlvo.name}\n`;
         csv += `Emitido por: ${usuario.name} (${cargoEmitente})\n`;
@@ -118,7 +143,7 @@ function RelatorioIndividualAluno() {
         csv += "Indicador,Valor\n";
         dadosDashboard.metricas.forEach(m => {
             csv += `${m.label},${m.val}\n`;
-        }) ;
+        });
         csv += "\n";
 
         csv += "--- Certificados Validos ---\n";
@@ -129,7 +154,7 @@ function RelatorioIndividualAluno() {
             csv += `${c.titulo},${c.periodo},${c.horas},${c.status}\n`;
         });
 
-        const blob = new Blob(["\uFEFF" +csv], { type: "text/csv;charset=utf-8;" });
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -160,7 +185,7 @@ function RelatorioIndividualAluno() {
             headStyles: { fillColor: [26, 86, 219] },
         });
 
-        if(areaGraficos){
+        if (areaGraficos) {
             try {
                 const canvas = await html2canvas(areaGraficos, { scale: 2 });
                 const imgData = canvas.toDataURL('image/png');
@@ -177,7 +202,7 @@ function RelatorioIndividualAluno() {
         const listaGlobalCertificados = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
         const meusCertificados = listaGlobalCertificados.filter(c => String(c.alunoId) === String(alunoAlvo.id));
 
-        if(meusCertificados.length > 0){
+        if (meusCertificados.length > 0) {
             doc.addPage();
             doc.setFontSize(14);
             doc.text("Histórico de Certificados", 14, 15);
@@ -187,10 +212,10 @@ function RelatorioIndividualAluno() {
                 body: meusCertificados.map(c => [c.titulo, c.periodo, c.horas + "h", c.status]),
                 headStyles: { fillColor: [99, 102, 219] },
             });
-        }      
-        
+        }
+
         const pageCount = doc.internal.getNumberOfPages();
-        for(let i = 1; i <= pageCount; i++){
+        for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(10);
             doc.setTextColor(150);
@@ -212,10 +237,11 @@ function RelatorioIndividualAluno() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link href="/contato" className="mx-2 text-dark">Contato</Nav.Link>
+                            <Nav.Link onClick={() => navigate(usuario.role === 'coordenador' ? '/coordenador' : '/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -234,11 +260,6 @@ function RelatorioIndividualAluno() {
             <Container className="flex-grow-1">
                 <h2 className="text-primary fw-bold mb-4" style={{ fontSize: '2.5rem' }}>
                     Relatório {alunoSelecionado ? `de ${alunoSelecionado.name}` : 'Aluno'}
-                    {alunoSelecionado && (
-                        <Button variant="outline-secondary" size="sm" className="ms-3" onClick={() => setAlunoSelecionado(null)}>
-                            Voltar ao Meu Relatório
-                        </Button>
-                    )}
                 </h2>
 
                 {/* Métricas Superiores */}
@@ -300,16 +321,23 @@ function RelatorioIndividualAluno() {
                 <Row className="mb-5 g-4">
                     <Col md={6}>
                         <Card className="border-0 shadow-sm p-3 h-100">
-                            <h6 className="fw-bold text-dark">Horas por Certificado</h6>
+                            <div className="d-flex justify-content-between align-content-center mb-3">
+                                <h6 className="fw-bold text-dark mb-0">Horas por Certificado</h6>
+                                <div className="d-flex gap-2" style={{ fontSize: '0.7rem' }}>
+                                    <span style={{ color: '#2563eb' }}>● Estudos</span>
+                                    <span style={{ color: '#06b6d4' }}>● Eventos</span>
+                                    <span style={{ color: '#6366f1' }}>● Monitoria</span>
+                                </div>
+                            </div>
                             <ResponsiveContainer width="100%" height={200}>
                                 <LineChart data={dadosDashboard.horasCertificado}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                                    <YAxis axisLine={false} tickLine={false} />
-                                    <Tooltip />
-                                    <Line type="monotone" dataKey="estudos" stroke="#2563eb" strokeWidth={3} />
-                                    <Line type="monotone" dataKey="eventos" stroke="#06b6d4" strokeWidth={3} />
-                                    <Line type="monotone" dataKey="monitoria" stroke="#6366f1" strokeWidth={3} />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#888', fontSize: 12}} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 12}} />
+                                    <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    <Line type="monotone" dataKey="estudos" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="eventos" stroke="#06b6d4" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="monitoria" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </Card>

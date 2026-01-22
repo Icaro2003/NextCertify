@@ -72,24 +72,30 @@ function RelatoriosTutor() {
         return <div className="p-5 text-center">Verificando permissões...</div>;
     }
 
-   return (
+    return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* --- NAVBAR (Mantida igual ao seu código) --- */}
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
-                    <Navbar.Brand onClick={() => navigate('/home-tutor')} style={{ cursor: 'pointer' }}>
+                    <Navbar.Brand href="#" className="d-flex align-items-center">
                         <Image src={LogoNextCertify} alt="Logo" height="40" />
                     </Navbar.Brand>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark fw-bold border-bottom border-primary">Relatórios</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Formulário</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark fw-bold">Relatórios</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
-                            <FaUserCircle size={32} className="text-primary" />
-                            <span className="fw-bold text-dark">{usuario?.name}</span>
-                            <Button variant="outline-danger" size="sm" onClick={handleLogout}><FaSignOutAlt /> Sair</Button>
+                            <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
+                            <div className="d-flex align-items-center gap-2">
+                                <FaUserCircle size={32} className="text-primary" />
+                                <span className="fw-bold text-dark">{usuario.name}</span>
+                            </div>
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
+                                <FaSignOutAlt size={16} /> Sair
+                            </Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
@@ -132,8 +138,8 @@ function RelatoriosTutor() {
                                 <Card className="border-0 shadow-sm rounded-4 p-2 h-100">
                                     <Card.Body className="d-flex align-items-center justify-content-between">
                                         <div className="d-flex align-items-center gap-3">
-                                            {item.status === 'concluido' ? 
-                                                <FaCheckCircle size={35} className="text-success" /> : 
+                                            {item.status === 'concluido' ?
+                                                <FaCheckCircle size={35} className="text-success" /> :
                                                 <FaClock size={35} className="text-warning" />
                                             }
                                             <div>
@@ -144,8 +150,8 @@ function RelatoriosTutor() {
                                         <Button
                                             variant={item.status === 'concluido' ? "outline-primary" : "primary"}
                                             className="fw-bold"
-                                            onClick={() => item.status === 'pendente' ? 
-                                                navigate('/forms-tutor', { state: { aluno: item } }) : 
+                                            onClick={() => item.status === 'pendente' ?
+                                                navigate('/forms-tutor', { state: { aluno: item } }) :
                                                 handleVerDetalhes(item)}
                                         >
                                             {item.status === 'concluido' ? 'Detalhes' : 'Preencher'}
@@ -183,7 +189,7 @@ function RelatoriosTutor() {
                                     <p className="mb-1 text-muted small fw-bold">DATA DE ENTREGA</p>
                                     <p className="fw-medium">{relatorioSelecionado.data}</p>
                                 </Col>
-                                
+
                                 {/* Exibe os detalhes que vieram do formulário (localStorage) */}
                                 {relatorioSelecionado.detalhes ? (
                                     <>

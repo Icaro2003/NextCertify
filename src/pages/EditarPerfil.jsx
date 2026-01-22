@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Navbar, Nav, Image } from 'react-bootstrap';
-import { FaUserEdit, FaSave, FaTimes, FaBell, FaUserCircle } from 'react-icons/fa';
+import { FaUserEdit, FaSave, FaTimes, FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
 
@@ -77,6 +77,11 @@ function EditarPerfil() {
         navigate('/aluno');
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem("usuarioLogado");
+        navigate('/');
+    };
+
     if (!usuario) return <div>Carregando...</div>;
 
 
@@ -100,6 +105,7 @@ function EditarPerfil() {
                                 <FaUserCircle size={32} className="text-primary" />
                                 <span className="fw-bold text-dark">{usuario.name}</span>
                             </div>
+                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
@@ -119,7 +125,7 @@ function EditarPerfil() {
 
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fw-bold">Matrícula</Form.Label>
-                                    <Form.Control id="matricula" type="text" value={form.matricula} onChange={handleChange} />
+                                    <Form.Control id="matricula" type="text" disabled value={form.matricula} onChange={handleChange} />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
@@ -141,10 +147,9 @@ function EditarPerfil() {
                     </Col>
                 </Row>
             </Container>
-
-            <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
+            <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '30px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
                 <Container>
-                    <small>© 2025 - NextCertify</small>
+                    <h5 className="mb-0">© 2025 - NextCertify</h5>
                 </Container>
             </footer>
         </div>

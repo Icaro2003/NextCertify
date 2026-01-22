@@ -8,9 +8,10 @@ import mockAut from '../mocks/auth-mock.json';
 
 
 function Predefinicoes() {
+    const navigate = useNavigate();
     const { usuario, handleLogout } = useAuthenticatedUser();
     const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
-    const [horasCategoria, setHorasCategoria] = useState([]);
+    const [horasCategoria, setHorasCategoria] = useState({});
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
     const [tutorSelecionado, setTutorSelecionado] = useState("");
@@ -35,7 +36,7 @@ function Predefinicoes() {
 
     const handleSalvarHoras = (e) => {
         e.preventDefault();
-        localStorage.setItem("predefinicioes_horas", JSON.stringify(horasCategoria));
+        localStorage.setItem("predefinicoes_horas", JSON.stringify(horasCategoria));
         alert("Configuração de horas salva!");
     };
 
@@ -52,7 +53,7 @@ function Predefinicoes() {
         };
 
         const novosVinculos = [...vinculos, novoVinculo];
-        setVinculos(novoVinculo);
+        setVinculos(novosVinculos);
         localStorage.setItem("vinculos_tutoria", JSON.stringify(novosVinculos));
         alert("Vínculo criado com sucesso!");
     };
@@ -61,6 +62,11 @@ function Predefinicoes() {
         const filtrados = vinculos.filter(v => v.id !== id);
         setVinculos(filtrados);
         localStorage.setItem("vinculos_tutoria", JSON.stringify(filtrados));
+    };
+
+    const gradientStyle = {
+        background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
+        color: 'white'
     };
 
     if (!usuario) return <div className='p-5 text-center'>Carregando....</div>
@@ -72,13 +78,19 @@ function Predefinicoes() {
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#"><Image src={LogoNextCertify} height="40" /></Navbar.Brand>
-                    <Nav className="mx-auto fw-medium d-none d-lg-flex">
-                        <Nav.Link href="/registro-aluno">Alunos</Nav.Link>
-                        <Nav.Link href="/registro-tutores">Tutores</Nav.Link>
-                        <Nav.Link href="/predefinicoes" className="text-primary">Predefinições</Nav.Link>
-                    </Nav>
+                        <Nav className="text-center mx-auto fw-medium">
+                            <Nav.Link onClick={() => navigate(usuario.role === 'coordenador' ? '/coordenador' : '/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
+                            <Nav.Link className="mx-2 text-dark fw-bold">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
+                        </Nav>
                     <div className="d-flex align-items-center gap-3">
-                        <span className="fw-bold">{usuario.name}</span>
+                           <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
+                            <div className="d-flex align-items-center gap-2">
+                                <FaUserCircle size={32} className="text-primary" />
+                                <span className="fw-bold text-dark">{usuario.name}</span>
+                            </div>
                         <Button variant="outline-danger" size="sm" onClick={handleLogout}><FaSignOutAlt /> Sair</Button>
                     </div>
                 </Container>
@@ -185,8 +197,10 @@ function Predefinicoes() {
                 ))}
             </Container>
 
-            <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }}>
-                <Container><h5 className="mb-0 small">© 2025 - NextCertify</h5></Container>
+            <footer style={{ ...gradientStyle, padding: '30px 0', textAlign: 'center' }} className="mt-auto">
+                <Container>
+                    <h5 className="mb-0">© 2025 - NextCertify</h5>
+                </Container>
             </footer>
         </div>
     );

@@ -24,7 +24,8 @@ function RelatoriosCoordenador() {
         dificuldadesGrafico: [],
         tutores: [],
         tutorandos: [],
-        dificuldades: []
+        dificuldades: [],
+        certificadosPorTipo: []
     });
 
     useEffect(() => {
@@ -54,7 +55,6 @@ function RelatoriosCoordenador() {
             semestre: t.semestre || "2025.1"
         }));
 
-        // Filtra Alunos (Tutorandos) do Mock
         const listaAlunosMock = listaUsuarios.filter(user => user.role === 'aluno').map(a => ({
             id: a.matricula || "ALU-OFF",
             nome: a.name,
@@ -62,11 +62,29 @@ function RelatoriosCoordenador() {
             semestre: a.semestre || "2025.1"
         }));
 
-        // --- CÁLCULOS DE MÉTRICAS ---
+        const contagemTipos = { 
+            'Estudo Individual': 0, 
+            'Eventos': 0, 
+            'Monitoria': 0,
+            'Outros': 0 
+        };
+
+        certificadosGlobais.forEach(cert => {
+            const tipo = cert.titulo || "";
+            if (tipo.includes("Estudo Individual")) contagemTipos['Estudo Individual']++;
+            else if (tipo.includes("Evento")) contagemTipos['Eventos']++;
+            else if (tipo.includes("Monitoria")) contagemTipos['Monitoria']++;
+            else contagemTipos['Outros']++;
+        });
+
+        const dadosCertificadosGrafico = Object.keys(contagemTipos).map(key => ({
+            name: key,
+            quantidade: contagemTipos[key]
+        }));
+
         const totalCertificadosCount = certificadosGlobais.length;
         const totalRelatorios = relatoriosReais.length || 1;
 
-        // Processamento de dificuldades (Lógica original)
         const countsDif = { conteudo: 0, acesso: 0, funcionamento: 0, outras: 0 };
         relatoriosReais.forEach(rel => {
             if (rel.dificuldadeTipo === 'conteudo') countsDif.conteudo++;
@@ -95,6 +113,7 @@ function RelatoriosCoordenador() {
             dificuldades: novasDificuldades,
             tutores: listaTutoresMock,
             tutorandos: listaAlunosMock,
+            certificadosPorTipo: dadosCertificadosGrafico,
             dificuldadesGrafico: [
                 { name: 'Conteúdo', sim: countsDif.conteudo, nao: totalRelatorios - countsDif.conteudo },
                 { name: 'Acesso', sim: countsDif.acesso, nao: totalRelatorios - countsDif.acesso },
@@ -224,10 +243,10 @@ function RelatoriosCoordenador() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
-
+                            <Nav.Link onClick={() => navigate('/coordenador')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
@@ -304,6 +323,20 @@ function RelatoriosCoordenador() {
                                     <Tooltip />
                                     <Bar dataKey="sim" fill="#2563eb" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="nao" fill="#9ca3af" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </Card>
+                    </Col>
+                    <Col md={6}>
+                        <Card className="border-0 shadow-sm p-3 h-100">
+                            <h6 className="fw-bold text-dark">Distribuição de Certificados</h6>
+                            <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={dadosDashboard.certificadosPorTipo}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" fontSize={12} />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="quantidade" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </Card>

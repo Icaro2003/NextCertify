@@ -45,20 +45,15 @@ function HomeTutor() {
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#" className="d-flex align-items-center">
-                        <Image
-                            src={LogoNextCertify}
-                            alt="Logo NextCertify"
-                            height="40"
-                        />
+                        <Image src={LogoNextCertify} alt="Logo" height="40" />
                     </Navbar.Brand>
-
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="/home-tutor" className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link href="/alunos-tutor" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="/forms-tutor" className="mx-2 text-dark">Formulário de Acompanhamento</Nav.Link>
-
+                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Formulário</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark">Relatórios</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
