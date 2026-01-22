@@ -87,11 +87,11 @@ function AvaliacaoTutoria() {
 
         // Lógica especial para salvar o nome do tutor junto com o ID
         if (id === "tutorId") {
-            const tutorSelecionado = listaTutores.find(t => t.matricula === value);
+            const tutorSelecionado = listaTutores.find(t => t.id === value);
             setFormData({
                 ...formData,
                 tutorId: value,
-                tutorNome: tutorSelecionado ? tutorSelecionado.name : ''
+                tutorNome: tutorSelecionado ? tutorSelecionado.nome : ''
             });
         } else {
             setFormData({ ...formData, [id]: value });
@@ -129,20 +129,29 @@ function AvaliacaoTutoria() {
 
             <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container fluid className="px-5">
-                    <Navbar.Brand onClick={() => navigate('/aluno')} style={{ cursor: 'pointer' }}>
-                        <Image src={LogoNextCertify} alt="Logo" height="40" />
+                    <Navbar.Brand href="#" className="d-flex align-items-center">
+                        <Image
+                            src={LogoNextCertify}
+                            alt="Logo NextCertify"
+                            height="40"
+                        />
                     </Navbar.Brand>
-                    <Navbar.Collapse>
-                        <Nav className="mx-auto fw-medium">
-                            <Nav.Link href="/aluno">Home</Nav.Link>
-                            <Nav.Link href="/meus-certificados">Certificados</Nav.Link>
+
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="text-center mx-auto fw-medium">
+                            <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
+                            <Nav.Link href="/avaliacao-tutoria" className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
+
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
-                            <FaBell size={20} className="text-primary" />
+                            <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold">{usuario.nome}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
+                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>

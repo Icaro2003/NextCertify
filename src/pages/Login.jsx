@@ -65,13 +65,13 @@ function Login() {
             localStorage.setItem("usuarioLogado", JSON.stringify({
                 ...data.usuario,
                 curso: cursoAnoSalvo.curso,
-                curso: cursoAnoSalvo.anoIngresso,
+                anoIngresso: cursoAnoSalvo.anoIngresso,
                 role: decoded.role
             }));
 
             console.log(JSON.parse(localStorage.getItem("usuarioLogado")));
 
-            // navigateRole(decoded.role);
+            navigateRole(decoded.role);
         } catch (error) {
             handleAlert(error?.message || "Usuário não encontrado!");
         }
