@@ -27,16 +27,10 @@ function Cadastro() {
         matricula: "",
         cpf: "",
 
-        perfil: "",
-
         // Bolsista / Aluno
         anoIngresso: "",
         curso: "",
-
-        // Tutor / Coordenador
-        area: "",
-        nivel: "",
-        capacidadeMaxima: ""
+        semestre: ""
     });
 
     const handleChange = (e) => {
@@ -63,211 +57,182 @@ function Cadastro() {
 
         const data = await response.json();
 
-        const { curso, anoIngresso } = dados;
-        const cursoEAno = { curso, anoIngresso };
+        const { curso, anoIngresso, semestre } = dados;
+        const dadosCadastroNovos = { curso, anoIngresso, semestre };
 
-        localStorage.setItem("curso-ano", JSON.stringify(cursoEAno));
-        console.log(JSON.parse(localStorage.getItem("curso-ano")));
+        localStorage.setItem("curso-ano-semestre", JSON.stringify(dadosCadastroNovos));
+        console.log(JSON.parse(localStorage.getItem("curso-ano-semestre")));
 
-    if (!response.ok) {
-        throw new Error(data.error || "Erro na requisição POST");
-    }
+        if (!response.ok) {
+            throw new Error(data.error || "Erro ao cadastrar aluno!");
+        }
 
-    return data;
-};
+        return data;
+    };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    try {
-        await registerUser();
-        alert("Cadastro realizado com sucesso! Faça o login.");
-        navigate("/");
-    } catch (error) {
-        handleAlert(error?.message || "Erro ao cadastrar. Tente novamente.");
-    }
-};
+        try {
+            await registerUser();
+            alert("Cadastro realizado com sucesso! Faça o login.");
+            navigate("/");
+        } catch (error) {
+            handleAlert(error?.message || "Erro ao cadastrar. Tente novamente.");
+        }
+    };
 
-return (
-    <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #00C6FF 0%, #0072FF 100%)',
-        backgroundColor: '#00b0c8',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
-    }}>
-        <Container style={{ maxWidth: '1100px' }}>
-            <Row className="align-items-center">
+    return (
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #00C6FF 0%, #0072FF 100%)',
+            backgroundColor: '#00b0c8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+        }}>
+            <Container style={{ maxWidth: '1100px' }}>
+                <Row className="align-items-center">
 
-                <Col lg={6} className="d-flex justify-content-center mb-5 mb-lg-0">
-                    <Image
-                        src={ImagemCadastro}
-                        fluid
-                        alt="Ilustração Cadastro"
-                        style={{ width: '100%', maxWidth: '550px' }}
-                    />
-                </Col>
+                    <Col lg={6} className="d-flex justify-content-center mb-5 mb-lg-0">
+                        <Image
+                            src={ImagemCadastro}
+                            fluid
+                            alt="Ilustração Cadastro"
+                            style={{ width: '100%', maxWidth: '550px' }}
+                        />
+                    </Col>
 
-                <Col lg={6}>
-                    <div className="bg-white px-5 py-3 shadow-lg rounded-4">
-                        <Form className="w-100" onSubmit={handleSubmit}>
+                    <Col lg={6}>
+                        <div className="bg-white px-5 py-3 shadow-lg rounded-4">
+                            <Form className="w-100" onSubmit={handleSubmit}>
 
-                            <h2 className="text-primary fw-bold mb-2" style={{ fontSize: '2.5rem' }}>Cadastre-se</h2>
-                            <p className="mb-4 text-muted">
-                                Já tem cadastro? <Link to="/" className="text-decoration-none fw-bold">Faça login!</Link>
-                            </p>
+                                <h2 className="text-primary fw-bold mb-2" style={{ fontSize: '2.5rem' }}>Cadastre-se</h2>
+                                <p className="mb-4 text-muted">
+                                    Já tem cadastro? <Link to="/" className="text-decoration-none fw-bold">Faça login!</Link>
+                                </p>
 
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="text" id="nome" label="Nome Completo"
-                                    value={dados.nome} onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="text" id="matricula" label="Matrícula"
-                                    value={dados.matricula} onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="email" id="email" label="Email"
-                                    value={dados.email} onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="text" id="cpf" label="CPF"
-                                    value={dados.cpf} onChange={handleChange}
-                                />
-                            </div>
-
-                            {/* <Form.Select
-                                    required
-                                    id='perfil'
-                                    className='mb-3 label-float'
-                                    value={dados.perfil}
-                                    onChange={handleChange}
-                                    style={
-                                        {
-                                            border: '1px solid #8C8B8B',
-                                            borderRadius: '20px'
-                                        }
-                                    }>
-                                    <option value="">Selecione o perfil</option>
-                                    <option value="ALUNO">Aluno</option>
-                                    <option value="BOLSISTA">Bolsista</option>
-                                    <option value="TUTOR">Tutor</option>
-                                    <option value="COORDENADOR">Coordenador</option>
-                                </Form.Select> */}
-
-                            <div className="mb-3">
-                                <div className="label-float mt-3">
-                                    <Form.Control
-                                        type='number'
-                                        min={0}
-                                        max={new Date().getFullYear()}
-                                        id='anoIngresso'
-                                        placeholder=" "
-                                        required
-                                        value={dados.anoIngresso}
-                                        onChange={handleChange}
-                                    />
-                                    <label htmlFor='anoIngresso'>Ano de ingresso</label>
-                                </div>
-
-                                <Form.Select
-                                    required
-                                    id='curso'
-                                    className='mb-3 label-float'
-                                    value={dados.curso}
-                                    onChange={handleChange}
-                                    style={
-                                        {
-                                            border: '1px solid #8C8B8B',
-                                            borderRadius: '20px'
-                                        }
-                                    }>
-                                    <option value="">Selecione o curso</option>
-                                    <option value="Ciência da Computação">Ciência da Computação</option>
-                                    <option value="Engenharia Ambiental">Engenharia Ambiental</option>
-                                    <option value="Engenharia Ambiental e Sanitária">
-                                        Engenharia Ambiental e Sanitária
-                                    </option>
-                                    <option value="Engenharia Civil">Engenharia Civil</option>
-                                    <option value="Engenharia de Minas">Engenharia de Minas</option>
-                                    <option value="Sistemas de Informação">Sistemas de Informação</option>
-                                </Form.Select>
-                            </div>
-
-                            {(dados.perfil === "TUTOR" || dados.perfil === "COORDENADOR") &&
                                 <div className="mb-3">
                                     <InputFlutuante
-                                        type="text" id="area" label="Área"
-                                        value={dados.area} onChange={handleChange}
-                                    />
-
-                                    <InputFlutuante
-                                        type="text" id="nivel" label="Nível"
-                                        value={dados.nivel} onChange={handleChange}
+                                        type="text" id="nome" label="Nome Completo"
+                                        value={dados.nome} onChange={handleChange}
                                     />
                                 </div>
-                            }
 
-                            {(dados.perfil === "TUTOR") &&
                                 <div className="mb-3">
-                                    <div className="label-float mt-3">
+                                    <InputFlutuante
+                                        type="text" id="matricula" label="Matrícula"
+                                        value={dados.matricula} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <InputFlutuante
+                                        type="email" id="email" label="Email"
+                                        value={dados.email} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <InputFlutuante
+                                        type="text" id="cpf" label="CPF"
+                                        value={dados.cpf} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <div className="label-float">
                                         <Form.Control
                                             type='number'
                                             min={0}
-                                            id='capacidadeMaxima'
+                                            max={new Date().getFullYear()}
+                                            id='anoIngresso'
                                             placeholder=" "
                                             required
-                                            value={dados.capacidadeMaxima}
+                                            value={dados.anoIngresso}
                                             onChange={handleChange}
                                         />
-                                        <label htmlFor='capacidadeMaxima'>Capacidade Máxima</label>
+                                        <label htmlFor='anoIngresso'>Ano de ingresso</label>
                                     </div>
                                 </div>
-                            }
 
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="password" id="senha" label="Senha"
-                                    value={dados.senha} onChange={handleChange}
+                                <div className="mb-3">
+                                    <Form.Select
+                                        required
+                                        id='semestre'
+                                        className='label-float'
+                                        value={dados.semestre}
+                                        onChange={handleChange}
+                                        style={
+                                            {
+                                                border: '1px solid #8C8B8B',
+                                                borderRadius: '20px'
+                                            }
+                                        }>
+                                        <option value="">Selecione o semestre</option>
+                                        <option value="1">1º Semestre</option>
+                                        <option value="2">2º Semestre</option>
+                                    </Form.Select>
+                                </div>
+                                
+                                <div className="mb-3">
+                                    <Form.Select
+                                        required
+                                        id='curso'
+                                        className='label-float'
+                                        value={dados.curso}
+                                        onChange={handleChange}
+                                        style={
+                                            {
+                                                border: '1px solid #8C8B8B',
+                                                borderRadius: '20px'
+                                            }
+                                        }>
+                                        <option value="">Selecione o curso</option>
+                                        <option value="Ciência da Computação">Ciência da Computação</option>
+                                        <option value="Engenharia Ambiental">Engenharia Ambiental</option>
+                                        <option value="Engenharia Ambiental e Sanitária">
+                                            Engenharia Ambiental e Sanitária
+                                        </option>
+                                        <option value="Engenharia Civil">Engenharia Civil</option>
+                                        <option value="Engenharia de Minas">Engenharia de Minas</option>
+                                        <option value="Sistemas de Informação">Sistemas de Informação</option>
+                                    </Form.Select>
+                                </div>
+
+                                <div className="mb-3">
+                                    <InputFlutuante
+                                        type="password" id="senha" label="Senha"
+                                        value={dados.senha} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <InputFlutuante
+                                        type="password" id="confirmarSenha" label="Confirmar sua senha"
+                                        value={dados.confirmarSenha} onChange={handleChange}
+                                    />
+                                </div>
+
+                                <AlertBox
+                                    show={show}
+                                    message={message}
+                                    variant={variant}
+                                    key={alertKey}
                                 />
-                            </div>
 
-                            <div className="mb-3">
-                                <InputFlutuante
-                                    type="password" id="confirmarSenha" label="Confirmar sua senha"
-                                    value={dados.confirmarSenha} onChange={handleChange}
-                                />
-                            </div>
+                                <div className="py-2">
+                                    <BotaoPrincipal texto="Cadastrar" type="submit" />
+                                </div>
 
-                            <AlertBox
-                                show={show}
-                                message={message}
-                                variant={variant}
-                                key={alertKey}
-                            />
-
-                            <div className="py-2">
-                                <BotaoPrincipal texto="Cadastrar" type="submit" />
-                            </div>
-
-                        </Form>
-                    </div>
-                </Col>
-            </Row>
-        </Container>
-    </div>
-);
+                            </Form>
+                        </div>
+                    </Col>
+                </Row>
+            </Container>
+        </div>
+    );
 };
 
 export default Cadastro;

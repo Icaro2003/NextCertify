@@ -5,9 +5,9 @@ import { MdSupportAgent } from "react-icons/md";
 import LoginIgm from '../img/login.png';
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
-import login from "../services/authService";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
+import { jwtDecode } from 'jwt-decode';
 
 function Login() {
     const navigate = useNavigate();
@@ -36,6 +36,7 @@ function Login() {
 
     const navigateRole = (role) => {
         const roleRoutes = {
+            student: "/aluno",
             scholarship_holder: "/bolsista",
             tutor: "/home-tutor",
             coordinator: "/coordenador",
@@ -44,7 +45,8 @@ function Login() {
         const route = roleRoutes[role];
 
         if (!route) {
-            navigate("/aluno");
+            console.log(`Rota desconhecida: ${role}`);
+            
             return;
         }
 
@@ -55,30 +57,28 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-       // setLoading(true);
+        // setLoading(true);
 
         try {
             const data = await login();
+            
             const decoded = jwtDecode(data.token);
-            const cursoAnoSalvo = JSON.parse(localStorage.getItem("curso-ano"));
-            console.log(cursoAnoSalvo);
-
+            const dadosSalvos = JSON.parse(localStorage.getItem("curso-ano-semestre"));
 
             localStorage.setItem("usuarioLogado", JSON.stringify({
                 ...data.usuario,
-                curso: cursoAnoSalvo.curso,
-                anoIngresso: cursoAnoSalvo.anoIngresso,
+                curso: dadosSalvos?.curso,
+                anoIngresso: dadosSalvos?.anoIngresso,
+                semestre: dadosSalvos?.semestre,
                 role: decoded.role
             }));
-
-            console.log(JSON.parse(localStorage.getItem("usuarioLogado")));
-
+            
             navigateRole(decoded.role);
         } catch (error) {
             handleAlert(error.message);
         } //finally {
-           // setLoading(false);
-       // }
+        // setLoading(false);
+        // }
     };
 
     return (

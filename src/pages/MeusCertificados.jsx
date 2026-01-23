@@ -12,7 +12,7 @@ function MeusCertificados() {
     const [regrasHoras, setRegrasHoras] = useState({});
     const [vinculoAtivo, setVinculosAtivo] = useState(null);
 
-    const { usuario, handleLogout } = useAuthenticatedUser();
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
     const [certificados, setCertificados] = useState([]);
 
 
@@ -33,11 +33,11 @@ function MeusCertificados() {
         setRegrasHoras(horasSalvas);
 
         const vinculos = JSON.parse(localStorage.getItem("vinculos_tutoria") || "[]");
-        const meuVinculo = vinculos.find(v => v.alunoNome === usuario?.name);
+        const meuVinculo = vinculos.find(v => v.alunoNome === usuario?.nome);
         setVinculosAtivo(meuVinculo);
 
         const meusCertificadosBrutos = listaGlobal.filter(c => String(c.alunoId) === String(usuario.id));
-        const metaDefinida = regrasHoras[usuario.role] || 100;
+        const metaDefinida = regrasHoras[userRole(usuario.role).toLowerCase()] || 100;
         const horasAprovadas = meusCertificadosBrutos.filter(c => c.status === 'aprovado').reduce((acc, curr) => acc + (Number(curr.horas) || 0), 0);
 
         setResumoHoras({
@@ -85,7 +85,7 @@ function MeusCertificados() {
 
         //const novaListaGlobal = [...listaSemOsMeus, ...certificadosComInfo];
         localStorage.setItem("lista_global_certificados", JSON.stringify([...listaSemOsMeus, ...certificadosComInfo]));
-        setUsuario({...usuario});
+        // setUsuario({...usuario});
     };
 
     const handleFileSelect = () => {
@@ -163,7 +163,6 @@ function MeusCertificados() {
         if (s === 'em espera' || s === 'pendente') return 'warning';
         return 'secondary';
     };
-
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

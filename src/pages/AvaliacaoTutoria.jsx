@@ -3,60 +3,66 @@ import { Container, Row, Col, Button, Navbar, Nav, Form, Image } from 'react-boo
 import { FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
-// Importe seu mock de usuários para listar os tutores
-import mockAut from '../mocks/auth-mock.json';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function AvaliacaoTutoria() {
     const navigate = useNavigate();
 
-    const { usuario, handleLogout } = useAuthenticatedUser();
-
-    //const [listaTutores, setListaTutores] = useState([]);
+    const { usuario, token, userRole, handleLogout } = useAuthenticatedUser();
 
     const [formData, setFormData] = useState({
-        nome: usuario?.nome || '',
+        nome: '',
         data: new Date().toISOString().slice(0, 10),
-        email: usuario?.email || '',
+        email: '',
         curso: '',
         anoIngresso: '',
         permanecer: 'sim',
         experiencia: 50,
-        tutorNome: 'Não atrubúido',
+        tutorNome: 'Não atribuído',
         dificuldade: '',
+        tutorId: '',
         avaliacaoTutor: 50,
         descricao: ''
     });
 
     useEffect(() => {
         if (usuario) {
-            setFormData(prev => ({
-                ...prev,
-                nome: usuario.nome || '',
-                email: usuario.email || '',
-                curso: usuario.curso || '',
-                anoIngresso: usuario.anoIngresso || ''
-            }));
-        }
+            const roleTraduzida = userRole(usuario.role).toLowerCase();
 
-        if (usuario.role !== 'student') {
-            alert("Acesso negado. Esta página é exclusiva para alunos.");
-            navigate('/');
+
+            if (roleTraduzida !== 'aluno') {
+                alert("Acesso negado. Esta página é exclusiva para alunos.");
+                navigate('/');
+            }
+
+            if (formData.nome === '') {
+                setFormData(prev => ({
+                    ...prev,
+                    nome: usuario.nome || '',
+                    email: usuario.email || '',
+                    curso: usuario.curso || '',
+                    anoIngresso: usuario.anoIngresso || ''
+                }));
+            }
         }
-    }, [usuario, navigate]);
+    }, [usuario, navigate, userRole, formData.nome]);
 
     let response, data;
 
+    const [listaTutores, setListaTutores] = useState([]);
+    const [carregando, setCarregando] = useState(true);
+
     useEffect(() => {
         const carregarTutores = async () => {
-            if (!usuario.token) {
+            if (!token) {
                 return;
             }
 
             try {
                 response = await fetch("http://localhost:3000/api/users/tutores", {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
 
@@ -76,31 +82,7 @@ function AvaliacaoTutoria() {
         };
 
         carregarTutores();
-    }, []);
-
-    // const handleChange = (e) => {
-
-    //     const usuariosMock = Array.isArray(mockAut) ? mockAut : (mockAut.users || []);
-    //     const perfilMock = usuariosMock.find(u => u.email === usuario.email);
-
-    //     //Buscar vínculos salvos na predefinições
-    //     const vinculosSalvos = JSON.parse(localStorage.getItem("vinculos_tutoria") || "[]");
-    //     const vinculoStorage = vinculosSalvos.find(v => v.alunoNome === usuario.name);
-    //     const tutorDefinido = vinculoStorage?.tutorNome || perfilMock?.tutor || 'Tutor não encontrado';
-    //     const cursoDefinido = usuario.curso || perfilMock?.curso || 'Curso não encontrado';
-
-    //     setFormData(prev => ({
-    //         ...prev,
-    //         nome: usuario.name,
-    //         email: usuario.email,
-    //         curso: cursoDefinido,
-    //         tutorNome: tutorDefinido
-    //     }));
-    //     /*Carregar tutores do mock
-    //     const usuarios = Array.isArray(mockAut) ? mockAut : (mockAut.users || []);
-    //     const tutoresEncontrados = usuarios.filter(u => u.role === 'tutor');
-    //     setListaTutores(tutoresEncontrados);*/
-    // }, [usuario, navigate]);
+    }, [token]);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -109,22 +91,6 @@ function AvaliacaoTutoria() {
             [id]: value
         }));
     };
-
-    /*const handleChange = (e) => {
-        const { id, value } = e.target;
-
-        // Lógica especial para salvar o nome do tutor junto com o ID
-        if (id === "tutorId") {
-            const tutorSelecionado = listaTutores.find(t => t.id === value);
-            setFormData({
-                ...formData,
-                tutorId: value,
-                tutorNome: tutorSelecionado ? tutorSelecionado.nome : ''
-            });
-        } else {
-            setFormData({ ...formData, [id]: value });
-        }
-    };*/
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -140,23 +106,6 @@ function AvaliacaoTutoria() {
             id: Date.now()
         };
 
-        /*if (!formData.tutorId) {
-            alert("Por favor, selecione o tutor que acompanhou você.");
-            return;
-        }*/
-
-        /*const avaliacaoSalvas = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");
-        const novaAvaliacao = {
-            ...formData,
-            id: Date.now(),
-            alunoId: usuario?.id,
-        };
-
-        /*const listaAtualizada = [...avaliacaoSalvas, novaAvaliacao];
-        localStorage.setItem("@App:avaliacao", JSON.stringify(listaAtualizada));
-        alert(`Avaliação enviada com sucesso!`);
-
-        alert(`Avaliação enviada com sucesso!`);*/
         localStorage.setItem("@App:avaliacao", JSON.stringify([...avaliacaoSalvas, novaAvaliacao]));
         alert(`Avaliação para o tutor ${formData.tutorNome} enviado com sucesso!`);
         navigate('/aluno');
@@ -187,8 +136,8 @@ function AvaliacaoTutoria() {
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
-                                <FaUserCircle size={32} className="text-primary" />;
-                                <span className="fw-bold text-dark">{usuario.nome}</span>
+                                <FaUserCircle size={32} className="text-primary" />
+                                <span className="fw-bold text-dark">{usuario?.nome || 'Carregando...'}</span>
                             </div >
                             <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div >
@@ -267,7 +216,7 @@ function AvaliacaoTutoria() {
                         </Col>
                     </Row>;
 
-    {/* Dificuldades */ }
+                    {/* Dificuldades */}
                     <Row className="mb-4">
                         <Col md={6}>
                             <Form.Label className="text-primary fw-bold">Maior dificuldade encontrada</Form.Label>
@@ -302,9 +251,9 @@ function AvaliacaoTutoria() {
                 </Form >
             </Container >
 
-        <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }}>
-            <h5 className="mb-0">© 2025 - NextCertify</h5>
-        </footer>
+            <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }}>
+                <h5 className="mb-0">© 2025 - NextCertify</h5>
+            </footer>
         </div >
     );
 }

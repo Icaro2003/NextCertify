@@ -51,18 +51,23 @@ function HomeBolsista() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="/predefinicoes" className="mx-2 text-dark">Predefinições</Nav.Link>
-
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
-                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
