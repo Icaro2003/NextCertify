@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Navbar, Nav, Form, Image } from 'react-bootstrap';
+import { Container, Row, Col, Button, Navbar, Nav, Form, Image, Spinner } from 'react-bootstrap';
+
 import { FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
+import avaliacaoTutoriaService from '../services/avaliacaoTutoriaService';
+
 
 function AvaliacaoTutoria() {
     const navigate = useNavigate();
@@ -16,13 +19,21 @@ function AvaliacaoTutoria() {
         email: '',
         curso: '',
         anoIngresso: '',
-        permanecer: 'sim',
-        experiencia: 50,
-        tutorNome: 'Não atribuído',
-        dificuldade: '',
+
+        // Tutor
         tutorId: '',
-        avaliacaoTutor: 50,
-        descricao: ''
+        tutorNome: 'Não atribuído',
+
+        // Avaliação
+        periodoId: '',
+        nivelSatisfacaoGeral: 50,
+        dificuldades: '',
+        comentarioGeral: '',
+        recomendariaPrograma: false,
+        justificativaRecomendacao: '',
+        aspectosPositivosText: '',
+        aspectosNegativosText: '',
+        sugestoesMelhoriasText: '',
     });
 
     useEffect(() => {
@@ -47,42 +58,37 @@ function AvaliacaoTutoria() {
         }
     }, [usuario, navigate, userRole, formData.nome]);
 
-    let response, data;
-
     const [listaTutores, setListaTutores] = useState([]);
+    const [periodos, setPeriodos] = useState([]);
     const [carregando, setCarregando] = useState(true);
 
     useEffect(() => {
-        const carregarTutores = async () => {
-            if (!token) {
-                return;
-            }
+        const carregarDadosIniciais = async () => {
+            if (!token) return;
 
             try {
-                response = await fetch("http://localhost:3000/api/users/tutores", {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                setCarregando(true);
+                const tutores = await fetch("http://localhost:3000/api/users/tutores", {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json());
+                setListaTutores(tutores);
 
-                data = await response.json();
+                const activePeriods = await avaliacaoTutoriaService.listActivePeriods(token);
+                setPeriodos(activePeriods);
 
-                if (!response.ok) {
-                    throw new Error(data.error || response.statusText);
+                if (activePeriods.length > 0) {
+                    setFormData(prev => ({ ...prev, periodoId: activePeriods[0].id }));
                 }
-
-                console.log(data);
-                setListaTutores(data);
             } catch (error) {
-                console.log(error);
+                console.error("Erro ao carregar dados:", error);
             } finally {
                 setCarregando(false);
             }
         };
 
-        carregarTutores();
+        carregarDadosIniciais();
     }, [token]);
+
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -92,7 +98,7 @@ function AvaliacaoTutoria() {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (formData.tutorNome === 'Tutor não encontrado' || formData.tutorNome === 'Não atribuído') {
@@ -100,16 +106,50 @@ function AvaliacaoTutoria() {
             return;
         }
 
-        const avaliacaoSalvas = JSON.parse(localStorage.getItem("@App:avaliacao") || "[]");
-        const novaAvaliacao = {
-            ...formData,
-            id: Date.now()
+        const mapSatisfacao = (val) => {
+            if (val <= 20) return 'MUITO_INSATISFEITO';
+            if (val <= 40) return 'INSATISFEITO';
+            if (val <= 60) return 'NEUTRO';
+            if (val <= 80) return 'SATISFEITO';
+            return 'MUITO_SATISFEITO';
         };
 
-        localStorage.setItem("@App:avaliacao", JSON.stringify([...avaliacaoSalvas, novaAvaliacao]));
-        alert(`Avaliação para o tutor ${formData.tutorNome} enviado com sucesso!`);
-        navigate('/aluno');
+        const payload = {
+            periodoId: formData.periodoId,
+            tipoAvaliador: 'ALUNO',
+            // aspectosPositivos: formData.aspectosPositivosText.split('\n').filter(s => s.trim() !== ''),
+            // aspectosNegativos: formData.aspectosNegativosText.split('\n').filter(s => s.trim() !== ''),
+            // sugestoesMelhorias: formData.sugestoesMelhoriasText.split('\n').filter(s => s.trim() !== ''),
+            aspectosPositivos: [],
+            aspectosNegativos: [],
+            sugestoesMelhorias: [],
+            comentarioGeral: formData.comentarioGeral,
+            dificuldadesComunicacao: '',
+            dificuldadesConteudo: '',
+            dificuldadesMetodologicas: '',
+            dificuldadesRecursos: '',
+            outrasDificuldades: '',
+            nivelSatisfacaoGeral: mapSatisfacao(formData.nivelSatisfacaoGeral),
+            recomendariaPrograma: formData.recomendariaPrograma,
+            justificativaRecomendacao: formData.justificativaRecomendacao || formData.comentarioGeral
+        };
+
+
+        if (formData.dificuldades === 'outrasDificuldades') {
+            payload.outrasDificuldades = formData.comentarioGeral;
+        } else if (formData.dificuldades) {
+            payload[formData.dificuldades] = 'Sim';
+        }
+
+        try {
+            await avaliacaoTutoriaService.createAvaliacaoTutoria(payload, token);
+            alert(`Avaliação enviada com sucesso!`);
+            navigate('/aluno');
+        } catch (error) {
+            alert(error.message);
+        }
     };
+
 
     const getBackgroundStyle = (value) => ({
         background: `linear-gradient(to right, #0d6efd 0%, #0d6efd ${value}%, #dee2e6 ${value}%, #dee2e6 100%)`
@@ -149,107 +189,144 @@ function AvaliacaoTutoria() {
                 <div className="mb-4 text-center text-md-start">
                     <h2 className="text-primary fw-bold">Avaliação do Projeto de Tutoria</h2>
                     <p className="text-muted">Sua opinião ajuda a melhorar o suporte acadêmico.</p>
-                    <p className="text-muted">Data da avaliação: <strong>{formData.data}</strong></p>
+                    <p className="text-muted">Data da avaliação: <strong>{new Date().toLocaleDateString()}</strong></p>
                 </div>
 
-                <Form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-sm">
-                    <Row className="mb-3">
-                        <Col md={4} className="mb-3">
-                            <Form.Label className="text-primary fw-bold">Aluno(a)</Form.Label>
-                            <Form.Control value={formData.nome} disabled className="bg-light" />
-                        </Col>
-                        <Col md={4}>
-                            <Form.Label className="text-primary fw-bold">Curso</Form.Label>
-                            <Form.Control value={formData.curso} disabled className="bg-light" />
-                        </Col>
-                        <Col md={4}>
-                            <Form.Label className="text-primary fw-bold">Tutor Vinculado</Form.Label>
-                            <Form.Control value={formData.tutorNome} disabled className={`fw-bold ${formData.tutorNome === 'Tutor não encontrado' ? 'text-danger' : 'text-success'}`} />
-                        </Col >
-                    </Row >
+                {carregando ? (
+                    <div className="text-center py-5">
+                        <Spinner animation="border" variant="primary" />
+                        <p className="mt-2 text-muted">Carregando dados necessários...</p>
+                    </div>
+                ) : (
+                    <Form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-sm">
 
-                    <hr className="my-4" />
-                    <Row className="mb-4">
-                        <Col md={12}>
-                            <h5 className="text-primary fw-bold mb-3">Quem foi seu Tutor?</h5>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Group>
-                                <Form.Label className="fw-bold">Selecione o Tutor acompanhante</Form.Label>
-                                <Form.Select
-                                    id="tutorId"
-                                    value={formData.tutorId}
-                                    onChange={handleChange}
-                                    required
-                                    style={{ border: '2px solid #0d6efd' }}
-                                >
-                                    <option value="">Clique para selecionar</option>
-                                    {listaTutores.map(t => (
-                                        <option key={t.id} value={t.id}>
-                                            {t.nome}
-                                        </option>
+                        <Row className="mb-3">
+                            <Col md={4} className="mb-3">
+                                <Form.Label className="text-primary fw-bold">Aluno(a)</Form.Label>
+                                <Form.Control value={formData.nome} disabled className="bg-light" />
+                            </Col>
+                            <Col md={4}>
+                                <Form.Label className="text-primary fw-bold">Curso</Form.Label>
+                                <Form.Control value={formData.curso} disabled className="bg-light" />
+                            </Col>
+                            <Col md={4}>
+                                <Form.Label className="text-primary fw-bold">Tutor Vinculado</Form.Label>
+                                <Form.Control value={formData.tutorNome} disabled className={`fw-bold ${formData.tutorNome === 'Tutor não encontrado' ? 'text-danger' : 'text-success'}`} />
+                            </Col >
+                        </Row >
+
+                        <hr className="my-4" />
+                        <Row className="mb-4">
+                            <Col md={12}>
+                                <h5 className="text-primary fw-bold mb-3">Quem foi seu Tutor?</h5>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label className="fw-bold">Selecione o Tutor acompanhante</Form.Label>
+                                    <Form.Select
+                                        id="tutorId"
+                                        value={formData.tutorId}
+                                        onChange={handleChange}
+                                        required
+                                        style={{ border: '2px solid #0d6efd' }}
+                                    >
+                                        <option value="">Clique para selecionar</option>
+                                        {listaTutores.map(t => (
+                                            <option key={t.id} value={t.id}>
+                                                {t.nome}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6} className="d-flex align-items-end">
+                                <p className="text-muted small mb-2">
+                                    * Se o seu tutor não estiver na lista, entre em contato com a coordenação.
+                                </p>
+                            </Col>
+                        </Row>
+
+                        <Row className="mb-4">
+                            <Col md={6} className="mb-4">
+                                <div className="d-flex justify-content-between">
+                                    <Form.Label className="text-primary fw-bold">Sua satisfação geral</Form.Label>
+                                    <span className="badge bg-primary">{formData.nivelSatisfacaoGeral}%</span>
+                                </div>
+                                <Form.Range id="nivelSatisfacaoGeral" value={formData.nivelSatisfacaoGeral} onChange={handleChange} style={getBackgroundStyle(formData.nivelSatisfacaoGeral)} />
+                            </Col>
+
+                            <Col md={6}>
+                                <Form.Label className="text-primary fw-bold">Deseja continuar no projeto em {`${new Date().getFullYear()}${usuario.semestre || ''}`}?</Form.Label>
+                                <div className="mt-2">
+                                    <Form.Check id='recomendariaProgramaSim' label="Sim" name="perm" type="radio" checked={formData.recomendariaPrograma === true} onChange={() => setFormData({ ...formData, recomendariaPrograma: true })} />
+                                    <Form.Check id='recomendariaProgramaNao' label="Não" name="perm" type="radio" checked={formData.recomendariaPrograma === false} onChange={() => setFormData({ ...formData, recomendariaPrograma: false })} />
+                                </div>
+                            </Col>
+                        </Row>
+
+                        {/* Dificuldades */}
+                        <Row className="mb-4">
+                            <Col md={6}>
+                                <Form.Label className="text-primary fw-bold">Período de Tutoria</Form.Label>
+                                <Form.Select id="periodoId" value={formData.periodoId} onChange={handleChange} required>
+                                    {periodos.map(p => (
+                                        <option key={p.id} value={p.id}>{p.semestre}/{p.ano}</option>
                                     ))}
                                 </Form.Select>
-                            </Form.Group>
-                        </Col>
-                        <Col md={6} className="d-flex align-items-end">
-                            <p className="text-muted small mb-2">
-                                * Se o seu tutor não estiver na lista, entre em contato com a coordenação.
-                            </p>
-                        </Col>
-                    </Row>
+                            </Col>
 
-                    <Row className="mb-4">
-                        <Col md={6} className="mb-4">
-                            <div className="d-flex justify-content-between">
-                                <Form.Label className="text-primary fw-bold">Nota para o tutor: {formData.tutorNome}</Form.Label>
-                                <span className="badge bg-primary">{formData.avaliacaoTutor}%</span>
-                            </div>
-                            <Form.Range id="avaliacaoTutor" value={formData.avaliacaoTutor} onChange={handleChange} style={getBackgroundStyle(formData.avaliacaoTutor)} />
-                        </Col>
-                        <Col md={6}>
-                            <div className="d-flex justify-content-between">
-                                <Form.Label className="text-primary fw-bold">Sua experiência geral</Form.Label>
-                                <span className="badge bg-primary">{formData.experiencia}%</span>
-                            </div>
-                            <Form.Range id="experiencia" value={formData.experiencia} onChange={handleChange} style={getBackgroundStyle(formData.experiencia)} />
-                        </Col>
-                    </Row>;
+                            <Col md={6}>
+                                <Form.Label className="text-primary fw-bold">Maior dificuldade encontrada</Form.Label>
+                                <Form.Select
+                                    id="dificuldades"
+                                    value={formData.dificuldades}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Selecionar</option>
+                                    <option value="dificuldadesComunicacao">Comunicação com o Tutor</option>
+                                    <option value="dificuldadesConteudo">Complexidade do Conteúdo</option>
+                                    <option value="dificuldadesMetodologicas">Metodologia</option>
+                                    <option value="dificuldadesRecursos">Recursos</option>
+                                    <option value="outrasDificuldades">Outro (Descrever ao lado)</option>
+                                </Form.Select>
 
-                    {/* Dificuldades */}
-                    <Row className="mb-4">
-                        <Col md={6}>
-                            <Form.Label className="text-primary fw-bold">Maior dificuldade encontrada</Form.Label>
-                            <Form.Select id="dificuldade" value={formData.dificuldade} onChange={handleChange} required>
-                                <option value="">Selecionar</option>
-                                <option value="Horario">Conciliação de Horários</option>
-                                <option value="Conteudo">Complexidade do Conteúdo</option>
-                                <option value="Comunicacao">Comunicação com o Tutor</option>
-                                <option value="Outro">Outro (Descrever abaixo)</option>
-                            </Form.Select>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Label className="text-primary fw-bold">Deseja continuar no projeto em 2025.2?</Form.Label>
-                            <div className="mt-2">
-                                <Form.Check inline label="Sim" name="perm" type="radio" checked={formData.permanecer === 'sim'} onChange={() => setFormData({ ...formData, permanecer: 'sim' })} />
-                                <Form.Check inline label="Não" name="perm" type="radio" checked={formData.permanecer === 'nao'} onChange={() => setFormData({ ...formData, permanecer: 'nao' })} />
-                            </div>
-                        </Col>
-                    </Row>
 
-                    <Row className="mb-4">
-                        <Col>
-                            <Form.Label className="text-primary fw-bold">Comentários Adicionais</Form.Label>
-                            <Form.Control as="textarea" id="descricao" rows={4} value={formData.descricao} onChange={handleChange} placeholder="Conte-nos mais detalhes..." />
-                        </Col>
-                    </Row>
+                            </Col>
+                        </Row>
 
-                    <div className="d-flex justify-content-end gap-2">
-                        <Button variant="outline-secondary" onClick={() => navigate('/aluno')}>Cancelar</Button>
-                        <Button variant="primary" type="submit" className="px-5 fw-bold" disabled={formData.tutorNome === 'Tutor não encontrado'}>Enviar Avaliação</Button>
-                    </div>
-                </Form >
+                        {/* <Row className="mb-4">
+                            <Col md={4} className="mb-3">
+                                <Form.Label className="text-primary fw-bold">Aspectos Positivos</Form.Label>
+                                <Form.Control as="textarea" id="aspectosPositivosText" rows={3} value={formData.aspectosPositivosText} onChange={handleChange} placeholder="O que funcionou bem?" />
+                            </Col>
+                            <Col md={4} className="mb-3">
+                                <Form.Label className="text-primary fw-bold">Aspectos Negativos</Form.Label>
+                                <Form.Control as="textarea" id="aspectosNegativosText" rows={3} value={formData.aspectosNegativosText} onChange={handleChange} placeholder="O que correu mal?" />
+                            </Col>
+                            <Col md={4} className="mb-3">
+                                <Form.Label className="text-primary fw-bold">Sugestões de Melhoria</Form.Label>
+                                <Form.Control as="textarea" id="sugestoesMelhoriasText" rows={3} value={formData.sugestoesMelhoriasText} onChange={handleChange} placeholder="O que pode melhorar?" />
+                            </Col>
+                        </Row> */}
+
+                        <Row className="mb-4">
+                            <Col>
+                                <Form.Label className="text-primary fw-bold">Comentários e Justificativa</Form.Label>
+                                <Form.Control as="textarea" id="comentarioGeral" rows={3} value={formData.comentarioGeral} onChange={handleChange} placeholder="Conte-nos sua experiência geral e por que recomenda (ou não) o programa..." required />
+                            </Col>
+                        </Row>
+
+
+
+                        <div className="d-flex justify-content-end gap-2">
+                            <Button variant="outline-secondary" onClick={() => navigate('/aluno')}>Cancelar</Button>
+                            <Button variant="primary" type="submit" className="px-5 fw-bold" disabled={formData.tutorNome === 'Tutor não encontrado'}>Enviar Avaliação</Button>
+                        </div>
+                    </Form >
+                )}
             </Container >
+
 
             <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '20px 0', textAlign: 'center', color: 'white' }}>
                 <h5 className="mb-0">© 2025 - NextCertify</h5>
