@@ -27,16 +27,10 @@ function Cadastro() {
         matricula: "",
         cpf: "",
 
-        perfil: "",
-
         // Bolsista / Aluno
         anoIngresso: "",
         curso: "",
-
-        // Tutor / Coordenador
-        area: "",
-        nivel: "",
-        capacidadeMaxima: ""
+        semestre: ""
     });
 
     const handleChange = (e) => {
@@ -53,30 +47,6 @@ function Cadastro() {
             status: "ATIVO"
         };
 
-        if (dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") {
-            payload.bolsista = {
-                anoIngresso: Number(dados.anoIngresso),
-                curso: dados.curso
-            };
-        }
-
-        if (dados.perfil === "TUTOR") {
-            payload.tutor = {
-                area: dados.area,
-                nivel: dados.nivel,
-                capacidadeMaxima: Number(dados.capacidadeMaxima)
-            };
-        }
-
-        if (dados.perfil === "COORDENADOR") {
-            payload.coordenador = {
-                area: dados.area,
-                nivel: dados.nivel
-            };
-        }
-
-        localStorage.setItem("perfil", dados.perfil);
-
         const response = await fetch("http://localhost:3000/api/users", {
             method: 'POST',
             headers: {
@@ -87,9 +57,14 @@ function Cadastro() {
 
         const data = await response.json();
 
+        const { curso, anoIngresso, semestre } = dados;
+        const dadosCadastroNovos = { curso, anoIngresso, semestre };
+
+        localStorage.setItem("curso-ano-semestre", JSON.stringify(dadosCadastroNovos));
+        console.log(JSON.parse(localStorage.getItem("curso-ano-semestre")));
 
         if (!response.ok) {
-            throw new Error(data.error || "Erro na requisição POST");
+            throw new Error(data.error || "Erro ao cadastrar aluno!");
         }
 
         return data;
@@ -166,96 +141,65 @@ function Cadastro() {
                                     />
                                 </div>
 
-                                <Form.Select
-                                    required
-                                    id='perfil'
-                                    className='mb-3 label-float'
-                                    value={dados.perfil}
-                                    onChange={handleChange}
-                                    style={
-                                        {
-                                            border: '1px solid #8C8B8B',
-                                            borderRadius: '20px'
-                                        }
-                                    }>
-                                    <option value="">Selecione o perfil</option>
-                                    <option value="ALUNO">Aluno</option>
-                                    <option value="BOLSISTA">Bolsista</option>
-                                    <option value="TUTOR">Tutor</option>
-                                    <option value="COORDENADOR">Coordenador</option>
-                                </Form.Select>
-
-                                {(dados.perfil === "ALUNO" || dados.perfil === "BOLSISTA") &&
-                                    <div className="mb-3">
-                                        <div className="label-float mt-3">
-                                            <Form.Control
-                                                type='number'
-                                                min={0}
-                                                max={new Date().getFullYear()}
-                                                id='anoIngresso'
-                                                placeholder=" "
-                                                required
-                                                value={dados.anoIngresso}
-                                                onChange={handleChange}
-                                            />
-                                            <label htmlFor='anoIngresso'>Ano de ingresso</label>
-                                        </div>
-
-                                        <Form.Select
+                                <div className="mb-3">
+                                    <div className="label-float">
+                                        <Form.Control
+                                            type='number'
+                                            min={0}
+                                            max={new Date().getFullYear()}
+                                            id='anoIngresso'
+                                            placeholder=" "
                                             required
-                                            id='curso'
-                                            className='mb-3 label-float'
-                                            value={dados.curso}
+                                            value={dados.anoIngresso}
                                             onChange={handleChange}
-                                            style={
-                                                {
-                                                    border: '1px solid #8C8B8B',
-                                                    borderRadius: '20px'
-                                                }
-                                            }>
-                                            <option value="">Selecione o curso</option>
-                                            <option value="Ciência da Computação">Ciência da Computação</option>
-                                            <option value="Engenharia Ambiental">Engenharia Ambiental</option>
-                                            <option value="Engenharia Ambiental e Sanitária">
-                                                Engenharia Ambiental e Sanitária
-                                            </option>
-                                            <option value="Engenharia Civil">Engenharia Civil</option>
-                                            <option value="Engenharia de Minas">Engenharia de Minas</option>
-                                            <option value="Sistemas de Informação">Sistemas de Informação</option>
-                                        </Form.Select>
-                                    </div>
-                                }
-
-                                {(dados.perfil === "TUTOR" || dados.perfil === "COORDENADOR") &&
-                                    <div className="mb-3">
-                                        <InputFlutuante
-                                            type="text" id="area" label="Área"
-                                            value={dados.area} onChange={handleChange}
                                         />
-
-                                        <InputFlutuante
-                                            type="text" id="nivel" label="Nível"
-                                            value={dados.nivel} onChange={handleChange}
-                                        />
+                                        <label htmlFor='anoIngresso'>Ano de ingresso</label>
                                     </div>
-                                }
+                                </div>
 
-                                {(dados.perfil === "TUTOR") &&
-                                    <div className="mb-3">
-                                        <div className="label-float mt-3">
-                                            <Form.Control
-                                                type='number'
-                                                min={0}
-                                                id='capacidadeMaxima'
-                                                placeholder=" "
-                                                required
-                                                value={dados.capacidadeMaxima}
-                                                onChange={handleChange}
-                                            />
-                                            <label htmlFor='capacidadeMaxima'>Capacidade Máxima</label>
-                                        </div>
-                                    </div>
-                                }
+                                <div className="mb-3">
+                                    <Form.Select
+                                        required
+                                        id='semestre'
+                                        className='label-float'
+                                        value={dados.semestre}
+                                        onChange={handleChange}
+                                        style={
+                                            {
+                                                border: '1px solid #8C8B8B',
+                                                borderRadius: '20px'
+                                            }
+                                        }>
+                                        <option value="">Selecione o semestre</option>
+                                        <option value="1">1º Semestre</option>
+                                        <option value="2">2º Semestre</option>
+                                    </Form.Select>
+                                </div>
+                                
+                                <div className="mb-3">
+                                    <Form.Select
+                                        required
+                                        id='curso'
+                                        className='label-float'
+                                        value={dados.curso}
+                                        onChange={handleChange}
+                                        style={
+                                            {
+                                                border: '1px solid #8C8B8B',
+                                                borderRadius: '20px'
+                                            }
+                                        }>
+                                        <option value="">Selecione o curso</option>
+                                        <option value="Ciência da Computação">Ciência da Computação</option>
+                                        <option value="Engenharia Ambiental">Engenharia Ambiental</option>
+                                        <option value="Engenharia Ambiental e Sanitária">
+                                            Engenharia Ambiental e Sanitária
+                                        </option>
+                                        <option value="Engenharia Civil">Engenharia Civil</option>
+                                        <option value="Engenharia de Minas">Engenharia de Minas</option>
+                                        <option value="Sistemas de Informação">Sistemas de Informação</option>
+                                    </Form.Select>
+                                </div>
 
                                 <div className="mb-3">
                                     <InputFlutuante

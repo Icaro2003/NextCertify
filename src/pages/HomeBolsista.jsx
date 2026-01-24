@@ -2,43 +2,31 @@ import { Container, Row, Col, Card, Button, Navbar, Nav, Badge, Image } from 're
 import LogoNextCertify from '../img/NextCertify.png';
 import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher, FaFileAlt, FaCertificate } from 'react-icons/fa';
 import { FaUserGear, FaBell } from 'react-icons/fa6';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function HomeBolsista() {
     const navigate = useNavigate();
-    const { usuario, handleLogout } = useAuthenticatedUser();
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
+
+    const [expanded, setExpanded] = useState(false);
 
     const gradientStyle = {
         background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
         color: 'white'
     };
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem("usuarioLogado");
-        const userParsed = savedUser ? JSON.parse(savedUser) : null;
 
-        if (!userParsed) {
-            navigate('/');
-        } else if (userParsed.role !== 'bolsista') {
-            alert("Acesso restrito: Você não tem permissão de bolsista.");
-
-            if (userParsed.role === 'tutor') navigate('/home-tutor');
-            else if (userParsed.role === 'coordenador') navigate('/coordenador');
-            else if (userParsed.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [navigate]);
-
-    if (!usuario || usuario.role !== 'bolsista') {
+    if (!usuario || userRole(usuario.role).toLowerCase() !== 'bolsista') {
         return <div className="p-5 text-center">Verificando permissões...</div>;
     }
+
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3">
+            <Navbar bg="white" expand={false} expanded={expanded} onToggle={setExpanded} className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#" className="d-flex align-items-center">
                         <Image
@@ -49,20 +37,27 @@ function HomeBolsista() {
                     </Navbar.Brand>
 
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="/predefinicoes" className="mx-2 text-dark">Predefinições</Nav.Link>
 
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="text-center mx-auto fw-medium mb-2">
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark fw-bold">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
                         </Nav>
-                        <div className="d-flex align-items-center gap-3">
+
+                        <div className="d-flex justify-content-center align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario?.nome}</span>
                             </div>
-                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
@@ -77,9 +72,9 @@ function HomeBolsista() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
-                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
-                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
+                                <h2 className="mb-1 fw-bold">{usuario?.nome}</h2>
+                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{userRole(usuario?.role)}</Badge>
+                                {/* <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p> */}
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -93,7 +88,7 @@ function HomeBolsista() {
 
             <Container className="my-5 flex-grow-1">
                 <div className="mb-5">
-                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.name.split(' ')[0]}</h1>
+                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.nome.split(' ')[0]}</h1>
                     <p className="text-muted fs-5">
                         Aqui você pode realizar upload dos seus certificados e fazer a avaliação do projeto de tutoria.
                     </p>

@@ -18,7 +18,7 @@ function Predefinicoes() {
     const [alunoSelecionado, setAlunoSelecionado] = useState("");
     const [tutores, setTutores] = useState([]);
     const [alunos, setAlunos] = useState([]);
-    const [vinculos, setVinculos] = useState([]); 
+    const [vinculos, setVinculos] = useState([]);
 
     useEffect(() => {
         const usuariosLS = JSON.parse(localStorage.getItem("usuarios") || "[]");
@@ -42,7 +42,7 @@ function Predefinicoes() {
 
     const handleAtribuirTutoria = (e) => {
         e.preventDefault();
-        if(!tutorSelecionado || !alunoSelecionado) return;
+        if (!tutorSelecionado || !alunoSelecionado) return;
 
         const novoVinculo = {
             id: Date.now(),
@@ -69,30 +69,46 @@ function Predefinicoes() {
         color: 'white'
     };
 
-    if (!usuario) return <div className='p-5 text-center'>Carregando....</div>
+    if (!usuario) return <div className='p-5 text-center'>Carregando....</div>;
 
 
-  return (
+    return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Navbar mantida igual... */}
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3">
+            <Navbar bg="white" expand={false} expanded={expanded} onToggle={setExpanded} className="shadow-sm py-3">
                 <Container fluid className="px-5">
-                    <Navbar.Brand href="#"><Image src={LogoNextCertify} height="40" /></Navbar.Brand>
-                        <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate(usuario.role === 'coordenador' ? '/coordenador' : '/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
-                            <Nav.Link className="mx-2 text-dark fw-bold">Predefinições</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
+                    <Navbar.Brand href="#" className="d-flex align-items-center">
+                        <Image
+                            src={LogoNextCertify}
+                            alt="Logo NextCertify"
+                            height="40"
+                        />
+                    </Navbar.Brand>
+
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="text-center mx-auto fw-medium mb-2">
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2' text-dark fw-bold">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/atribuir-papel')} className="mx-2 text-dark">Atribuir Papel</Nav.Link>
                         </Nav>
-                    <div className="d-flex align-items-center gap-3">
-                           <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
+
+                        <div className="d-flex justify-content-center align-items-center gap-3">
+                            <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario?.nome}</span>
                             </div>
-                        <Button variant="outline-danger" size="sm" onClick={handleLogout}><FaSignOutAlt /> Sair</Button>
-                    </div>
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
+                        </div>
+                    </Navbar.Collapse>
                 </Container>
             </Navbar>
 
@@ -106,8 +122,8 @@ function Predefinicoes() {
                         <Col md={6} className='mb-3'>
                             <Form.Group>
                                 <Form.Label className='fw-bold'>Selecionar Categoria</Form.Label>
-                                <Form.Select 
-                                    value={categoriaSelecionada} 
+                                <Form.Select
+                                    value={categoriaSelecionada}
                                     onChange={(e) => setCategoriaSelecionada(e.target.value)}
                                     required
                                 >
@@ -121,8 +137,8 @@ function Predefinicoes() {
                         <Col md={6} className='mb-3'>
                             <Form.Group>
                                 <Form.Label className='fw-bold'>Horas Necessárias</Form.Label>
-                                <Form.Control 
-                                    type='number' 
+                                <Form.Control
+                                    type='number'
                                     disabled={!categoriaSelecionada}
                                     value={horasCategoria[categoriaSelecionada] || ""}
                                     onChange={(e) => setHorasCategoria({
@@ -135,7 +151,7 @@ function Predefinicoes() {
                         </Col>
                     </Row>
                     <div className="d-flex justify-content-end">
-                        <Button variant="primary" type="submit"><FaSave className="me-2"/> Salvar Regra</Button>
+                        <Button variant="primary" type="submit"><FaSave className="me-2" /> Salvar Regra</Button>
                     </div>
                 </Form>
 
@@ -187,7 +203,7 @@ function Predefinicoes() {
                             <div>
                                 <h5 className='text-primary mb-1'>Tutor: {v.tutorNome}</h5>
                                 <p className='mb-0 text-muted'>
-                                    <strong>Aluno:</strong> {v.alunoNome} | 
+                                    <strong>Aluno:</strong> {v.alunoNome} |
                                     <strong> Período:</strong> {v.dataInicio} até {v.dataFim}
                                 </p>
                             </div>

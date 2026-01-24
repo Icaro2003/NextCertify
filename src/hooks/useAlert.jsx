@@ -15,11 +15,13 @@ export default function useAlert() {
 
     const alertProps = {
         show,
-        message, 
+        setShow,
+        message,
         variant,
         key,
         handleAlert
-    }
+    };
+
 
     return alertProps;
 }

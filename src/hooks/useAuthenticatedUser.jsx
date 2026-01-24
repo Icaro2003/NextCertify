@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 function useAuthenticatedUser() {
@@ -15,12 +16,12 @@ function useAuthenticatedUser() {
         }
     }, [navigate]);
 
-    const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
+    const handleLogout = useCallback(() => {
+        localStorage.clear();
         navigate('/');
-    };
+    }, [navigate]);
 
-    const userRole = (role) => {
+    const userRole = useCallback((role) => {
         const roleNames = {
             student: "Aluno",
             scholarship_holder: "Bolsista",
@@ -28,20 +29,14 @@ function useAuthenticatedUser() {
             coordinator: "Coordenador"
         };
 
-        if (role === "scholarship_holder") {
-            const perfil = localStorage.getItem("perfil");
-
-            if (perfil === "ALUNO") {
-                return "Aluno";
-            }
-        }
-
         return roleNames[role];
-    };
+    }, []);
+
 
 
     const userAuthenticatedProps = {
         usuario,
+        token: localStorage.getItem("token"),
         userRole,
         handleLogout
     };

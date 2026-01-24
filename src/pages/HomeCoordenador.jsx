@@ -2,43 +2,34 @@ import { Container, Row, Col, Card, Button, Navbar, Nav, Badge, Image } from 're
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
 import { useState, useEffect } from 'react';
-import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher, FaFileAlt, FaCertificate, FaFile } from 'react-icons/fa';
+import { FaUserGraduate, FaUserCircle, FaSignOutAlt, FaPen, FaChalkboardTeacher, FaFileAlt, FaCertificate, FaFile, FaShieldAlt } from 'react-icons/fa';
 import { FaUserGear, FaBell } from 'react-icons/fa6';
+
+
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 
 function HomeCoordenador() {
     const navigate = useNavigate();
-    const { usuario, handleLogout } = useAuthenticatedUser();
+    const { usuario, userRole, handleLogout } = useAuthenticatedUser();
 
     const gradientStyle = {
         background: 'linear-gradient(135deg, #005bea 0%, #00c6fb 100%)',
         color: 'white'
     };
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem("usuarioLogado");
-        const userParsed = savedUser ? JSON.parse(savedUser) : null;
+    const [expanded, setExpanded] = useState(false);
 
-        if (!userParsed) {
-            navigate('/');
-        } else if (userParsed.role !== 'coordenador') {
-            alert("Acesso restrito: Você não tem permissão de coordenador.");
+    const role = userRole(usuario?.role);
 
-            if (userParsed.role === 'tutor') navigate('/home-tutor');
-            else if (userParsed.role === 'bolsista') navigate('/bolsista');
-            else if (userParsed.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [navigate]);
-
-    if (!usuario || usuario.role !== 'coordenador') {
+    if (!usuario || role?.toLowerCase() !== 'coordenador') {
         return <div className="p-5 text-center">Verificando permissões...</div>;
     }
+
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3">
+            <Navbar bg="white" expand={false} expanded={expanded} onToggle={setExpanded} className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#" className="d-flex align-items-center">
                         <Image
@@ -49,18 +40,26 @@ function HomeCoordenador() {
                     </Navbar.Brand>
 
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro de Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro de tutores</Nav.Link>
+                        <Nav className="text-center mx-auto fw-medium mb-2">
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark fw-bold">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
                             <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/contato')} className="mx-2 text-dark">Contato</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/atribuir-papel')} className="mx-2 text-dark">Atribuir Papel</Nav.Link>
                         </Nav>
-                        <div className="d-flex align-items-center gap-3">
+
+                        <div className="d-flex justify-content-center align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario?.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
@@ -77,9 +76,9 @@ function HomeCoordenador() {
                                 <FaUserCircle size={80} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold">{usuario.name}</h2>
-                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role}</Badge>
-                                <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p>
+                                <h2 className="mb-1 fw-bold">{usuario.nome}</h2>
+                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{userRole(usuario.role)}</Badge>
+                                {/* <p className="mb-0 text-light">Matrícula: {usuario.matricula}</p> */}
                             </div>
                         </Col>
                         <Col md={4} className="text-md-end mt-3 mt-md-0">
@@ -93,7 +92,7 @@ function HomeCoordenador() {
 
             <Container className="my-5 flex-grow-1">
                 <div className="mb-5">
-                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.name.split(' ')[0]}</h1>
+                    <h1 className="text-primary fw-bold">Seja bem-vindo {usuario.nome.split(' ')[0]}</h1>
                     <p className="text-muted fs-5">
                         Aqui você pode realizar upload dos seus certificados e fazer a avaliação do projeto de tutoria.
                     </p>
@@ -163,7 +162,6 @@ function HomeCoordenador() {
                         </Card>
                     </Col>
 
-                    {/*Relatório de Gestão Geral*/}
                     <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
@@ -277,7 +275,28 @@ function HomeCoordenador() {
                             </Card.Body>
                         </Card>
                     </Col>
+                    <Col md={4}>
+                        <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
+                            <Card.Body>
+                                <div className="mb-3">
+                                    <FaShieldAlt size={60} className="text-danger mb-3" />
+                                </div>
+                                <h3 className="text-primary fw-bold mb-3">Gerenciar Papéis</h3>
+                                <p className="text-muted mb-4">
+                                    Atribuir papéis de Aluno, Tutor ou Bolsista para usuários cadastrados.
+                                </p>
+                                <Button
+                                    variant="primary"
+                                    className="px-4 py-2 w-100"
+                                    onClick={() => navigate('/atribuir-papel')}
+                                >
+                                    Veja mais
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                    </Col>
                 </Row>
+
             </Container>
 
             <footer style={{ ...gradientStyle, padding: '30px 0', textAlign: 'center' }} className="mt-auto">

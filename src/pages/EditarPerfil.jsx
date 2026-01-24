@@ -3,31 +3,27 @@ import { Container, Row, Col, Form, Button, Navbar, Nav, Image } from 'react-boo
 import { FaUserEdit, FaSave, FaTimes, FaBell, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
+import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
+import NavbarRole from '../components/NavbarRole';
 
 function EditarPerfil() {
     const navigate = useNavigate();
-    const [usuario, setUsuario] = useState(null);
+    const { usuario, token, userRole, handleLogout } = useAuthenticatedUser();
     const [form, setForm] = useState({
-        name: '',
+        nome: '',
         matricula: '',
         email: '',
-        password: ''
+        senha: ''
     });
 
     useEffect(() => {
-        const u = JSON.parse(localStorage.getItem('usuarioLogado'));
-        if (!u) {
-            navigate('/');
-            return;
-        }
-        setUsuario(u);
         setForm({
-            name: u.name || '',
-            matricula: u.matricula || '',
-            email: u.email || '',
-            password: ''
+            nome: usuario.nome,
+            matricula: usuario.matricula,
+            email: usuario.email,
+            senha: ''
         });
-    }, [navigate]);
+    }, [usuario]);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -77,39 +73,12 @@ function EditarPerfil() {
         navigate('/aluno');
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
-        navigate('/');
-    };
-
     if (!usuario) return <div>Carregando...</div>;
 
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', display: 'flex', flexDirection: 'column' }}>
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3">
-                <Container fluid className="px-5">
-                    <Navbar.Brand href="#" onClick={() => navigate('/aluno')} style={{ cursor: 'pointer' }}>
-                        <Image src={LogoNextCertify} alt="Logo" height="40" />
-                    </Navbar.Brand>
-                    <Navbar.Toggle />
-                    <Navbar.Collapse>
-                        <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="/aluno" className="mx-2 text-dark">Home</Nav.Link>
-                            <Nav.Link href="/meus-certificados" className="mx-2 text-dark">Certificados</Nav.Link>
-
-                        </Nav>
-                        <div className="d-flex align-items-center gap-3">
-                            <FaBell size={20} className="text-primary" />
-                            <div className="d-flex align-items-center gap-2">
-                                <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
-                            </div>
-                            <Button variant="outline-danger" size="sim" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
-                        </div>
-                    </Navbar.Collapse>
-                </Container>
-            </Navbar>
+            <NavbarRole userRole={userRole(usuario.role).toLowerCase()} />
 
             <Container className="my-5 flex-grow-1">
                 <Row className="justify-content-center">
@@ -120,7 +89,7 @@ function EditarPerfil() {
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fw-bold">Nome</Form.Label>
-                                    <Form.Control id="name" type="text" value={form.name} onChange={handleChange} required />
+                                    <Form.Control id="name" type="text" value={form.nome} onChange={handleChange} required />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
@@ -135,7 +104,7 @@ function EditarPerfil() {
 
                                 <Form.Group className="mb-4">
                                     <Form.Label className="fw-bold">Nova senha (opcional)</Form.Label>
-                                    <Form.Control id="password" type="password" value={form.password} onChange={handleChange} placeholder="Deixe em branco para manter a atual" />
+                                    <Form.Control id="password" type="password" value={form.senha} onChange={handleChange} placeholder="Deixe em branco para manter a atual" />
                                 </Form.Group>
 
                                 <div className="d-flex justify-content-end gap-2">

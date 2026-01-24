@@ -5,9 +5,9 @@ import { MdSupportAgent } from "react-icons/md";
 import LoginIgm from '../img/login.png';
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
-import login from "../services/authService";
 import useAlert from '../hooks/useAlert';
 import AlertBox from '../components/AlertBox';
+import { jwtDecode } from 'jwt-decode';
 
 function Login() {
     const navigate = useNavigate();
@@ -15,38 +15,70 @@ function Login() {
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const { show, message, variant, alertKey, handleAlert } = useAlert();
+
+    const login = async () => {
+        const response = await fetch("http://localhost:3000/api/users/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, senha }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Usuário ou senha inválidos");
+        }
+
+        localStorage.setItem("token", data.token);
+
+        return data;
+    };
+
+    const navigateRole = (role) => {
+        const roleRoutes = {
+            student: "/aluno",
+            scholarship_holder: "/bolsista",
+            tutor: "/home-tutor",
+            coordinator: "/coordenador",
+        };
+
+        const route = roleRoutes[role];
+
+        if (!route) {
+            console.log(`Rota desconhecida: ${role}`);
+            
+            return;
+        }
+
+        navigate(route);
+    };
+
     //const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-       // setLoading(true);
+        // setLoading(true);
 
         try {
-            const user = await login(email, senha);
-            alert(`Bem-vindo de volta ${user.name}`);
+            const data = await login();
+            
+            const decoded = jwtDecode(data.token);
+            const dadosSalvos = JSON.parse(localStorage.getItem("curso-ano-semestre"));
 
-            //Lógica para redirecionamento dos usuários baseados nos ROLES
-            switch(user.role){
-                case 'coordenador':
-                    navigate('/coordenador');
-                    break;
-                case 'bolsista':
-                    navigate('/bolsista');
-                    break;
-                case 'tutor':
-                    navigate('/home-tutor');
-                    break;
-                case 'aluno':
-                    navigate('/aluno');
-                    break;
-                default:
-                    navigate('/');
-            }
+            localStorage.setItem("usuarioLogado", JSON.stringify({
+                ...data.usuario,
+                curso: dadosSalvos?.curso,
+                anoIngresso: dadosSalvos?.anoIngresso,
+                semestre: dadosSalvos?.semestre,
+                role: decoded.role
+            }));
+            
+            navigateRole(decoded.role);
         } catch (error) {
             handleAlert(error.message);
         } //finally {
-           // setLoading(false);
-       // }
+        // setLoading(false);
+        // }
     };
 
     return (
