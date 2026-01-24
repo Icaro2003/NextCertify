@@ -33,6 +33,8 @@ import RelatoriosTutor from './pages/RelatoriosTutor';
 // Telas do Coordenador
 import HomeCoordenador from './pages/HomeCoordenador';
 import RelatoriosCoordenador from './pages/RelatoriosCoordenador';
+import AtribuirPapel from './pages/AtribuirPapel';
+
 
 function App() {
   return (
@@ -42,10 +44,10 @@ function App() {
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route path="/verificar-codigo" element={<VerificarCodigo />} />
       <Route path="/contato" element={<Contato />} />
-      <Route path="/teste" element={<h1>FUNCIONOU</h1>} />
+      <Route path="/teste" element={<Teste />} />
 
       <Route path="/aluno" element={<HomeAluno />} />
-      
+
       <Route path="/meus-certificados" element={<MeusCertificados />} />
       <Route path="/avaliacao-tutoria" element={<AvaliacaoTutoria />} />
       <Route path="/editar-perfil" element={<EditarPerfil />} />
@@ -67,6 +69,8 @@ function App() {
 
       <Route path="/coordenador" element={<HomeCoordenador />} />
       <Route path="/relatorios-coordenador" element={<RelatoriosCoordenador />} />
+      <Route path="/atribuir-papel" element={<AtribuirPapel />} />
+
     </Routes>
   );
 }
