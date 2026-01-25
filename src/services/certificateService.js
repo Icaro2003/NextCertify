@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:3000/api/certificates";
+import API_URL_BASE from "./apiUrl";
+
+const API_URL = `${API_URL_BASE}/certificates`;
 
 const certificateService = {
     async listCertificates(userId, token) {
@@ -55,7 +57,36 @@ const certificateService = {
         document.body.appendChild(link);
         link.click();
         link.parentNode.removeChild(link);
+    },
+
+    async listAllCertificates(token, status = '') {
+        const url = status ? `${API_URL}?status=${status}` : API_URL;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Não foi possível carregar os certificados.');
+        const data = await response.json();
+        return data.certificates || [];
+    },
+
+    async updateCertificateStatus(id, status, adminComments, token) {
+        const response = await fetch(`${API_URL}/${id}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status, adminComments })
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Falha ao atualizar o status do certificado.');
+        }
+        return await response.json();
     }
 };
+
 
 export default certificateService;

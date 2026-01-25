@@ -1,25 +1,30 @@
 import React, { useState, useEffect, use } from "react";
-import { Container, Row, Col, Card, Button, Navbar, Nav, Image, Form, Badge, ButtonGroup, Modal } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Navbar, Nav, Image, Form, Badge, ButtonGroup, Modal, Spinner, Alert } from "react-bootstrap";
+
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaBell, FaSignOutAlt, FaCertificate, FaCheckCircle, FaTimesCircle, FaSearch, FaCalendarAlt, FaClock, FaListUl, FaExclamationTriangle, FaUndo } from 'react-icons/fa';
-//import mockCertificados from '/src/mocks/certificados-mock.json';
 import LogoNextCertify from '../img/NextCertify.png';
+import useAuthenticatedUser from "../hooks/useAuthenticatedUser";
+import certificateService from "../services/certificateService";
+import API_URL from "../services/apiUrl";
+import predefinicoesService from "../services/predefinicoesService";
 
 function ValidarCertificados() {
     const navigate = useNavigate();
+    const { usuario, token, userRole, handleLogout } = useAuthenticatedUser();
 
     const [certificados, setCertificados] = useState([]);
     const [abaAtiva, setAbaAtiva] = useState("pendente");
     const [filtroCurso, setFiltroCurso] = useState("Sistemas de Informação");
-    const [usuario, setUsuario] = useState({ name: "Carregando...." });
     const [buscaAluno, setBuscaAluno] = useState("");
 
     const [showModalNegar, setShowModalNegar] = useState(false);
     const [certSelecionado, setCertSelecionado] = useState(null);
     const [motivoNegativa, setMotivoNegativa] = useState("");
 
-    //Opções padrões de motivo para negar os certificados enviados pelos alunos
-    //Sujeito a alterações futuras 
+    const [cursos, setCursos] = useState([]);
+    const [expanded, setExpanded] = useState(false);
+
     const motivosPadrao = [
         "Arquivo PDF ilegível ou corrompido",
         "Informações inconsistentes no certificado",
@@ -27,79 +32,108 @@ function ValidarCertificados() {
         "Certificado fora da data que o aluno entrou na UFC"
     ];
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
     useEffect(() => {
-        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-        if (usuarioLogado) {
-            setUsuario(usuarioLogado);
-        } else {
-            navigate("/");
+        if (!token) return;
+        carregarCertificados();
+        carregarCursos();
+    }, [token, abaAtiva]);
+
+    const carregarCursos = async () => {
+        try {
+            setLoading(true);
+            const listaBolsistas = await predefinicoesService.listScholarshipHolders(token);
+            const cursosUnicos = [...new Set(listaBolsistas.map(b => b.curso))];
+            const cursosValidos = cursosUnicos.filter(curso => curso);
+            setCursos(cursosValidos);
+        } catch (err) {
+            console.error(err);
+            setError("Falha ao carregar cursos do servidor.");
+        } finally {
+            setLoading(false);
         }
-
-        //Os certificados serão inicializados com o status de observação vazia
-        //POR FAVOR NÃO APAGAR ESSA PARTE DO CÓDIGO ATÉ AUTORIZAÇÃO FINAL
-        const listaGlobal = JSON.parse(localStorage.getItem("lista_global_certificados")) || [];
-
-        if (listaGlobal.length === 0 && mockCertificados) {
-            const iniciais = mockCertificados.map(c => ({ ...c, status: 'pendente', observacao: '' }));
-            setCertificados(iniciais);
-        } else {
-            setCertificados(listaGlobal);
-        }
-    }, [navigate]);
-
-    const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
-        navigate("/");
     };
+
+    const carregarCertificados = async () => {
+        try {
+            setLoading(true);
+            const statusMap = {
+                'pendente': 'pending',
+                'aprovado': 'approved',
+                'negado': 'rejected'
+            };
+            const data = await certificateService.listAllCertificates(token, statusMap[abaAtiva]);
+
+            const formatados = data.map(c => ({
+                ...c,
+                alunoNome: c.studentName || "Não informado",
+                periodo: `${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate).toLocaleDateString()}`,
+                horas: `${c.workload}h`,
+                observacao: c.adminComments || ""
+            }));
+
+            setCertificados(formatados);
+            setError(null);
+        } catch (err) {
+            console.error(err);
+            setError("Falha ao carregar certificados do servidor.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
 
     const handleVerPDF = (cert) => {
-        if (!cert.fileData) {
-            alert("Arquivo não encontrado ou corrompido.");
+        if (!cert.certificateUrl) {
+            alert("Arquivo não encontrado.");
             return;
         }
 
+        let url;
+        if (cert.certificateUrl.startsWith('http')) {
+            url = cert.certificateUrl;
+        } else {
+            url = `${API_URL.replace('/api', '')}${cert.certificateUrl.startsWith('/') ? '' : '/'}${cert.certificateUrl}`;
+        }
+
+        window.open(url, '_blank');
+    };
+
+
+    const handleAprovar = async (id) => {
         try {
-            // Se estiver em formato Base64 (Data URL), será aberto diretamente
-            if (cert.fileData.startsWith('data:')) {
-                const novaAba = window.open();
-                novaAba.document.write(
-                    `<iframe src="${cert.fileData}" frameborder="0" style="border:0; top:0px left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`
-                );
-            } else {
-                alert("Formato de arquivo inválido.");
-            }
-        } catch (error) {
-            console.error("Erro ao abrir PDF:", error);
-            alert("Não foi possível abrir o visualizador de PDF.");
+            await certificateService.updateCertificateStatus(id, 'approved', '', token);
+            alert("Certificado aprovado com sucesso!");
+            carregarCertificados();
+        } catch (err) {
+            alert("Erro ao aprovar certificado: " + err.message);
         }
     };
 
-    const salvarCertificados = (listaAtualizado) => {
-        localStorage.setItem("lista_global_certificados", JSON.stringify(listaAtualizado));
-    };
-
-    const handleAprovar = (id) => {
-        const novaLista = certificados.map(c => c.id === id ? { ...c, status: 'aprovado', observacao: '' } : c);
-        setCertificados(novaLista);
-        salvarCertificados(novaLista);
-    };
 
     const abrirModalNegar = (cert) => {
         setCertSelecionado(cert);
         setShowModalNegar(true);
     };
 
-    const confirmarNegativa = () => {
+    const confirmarNegativa = async () => {
         if (!motivoNegativa.trim()) {
             alert("Por favor, descreva ou selecione o motivo da rejeição");
             return;
         }
-        const novaLista = certificados.map(c => c.id === certSelecionado.id ? { ...c, status: 'negado', motivo: motivoNegativa, observacao: motivoNegativa } : c );
-        setCertificados(novaLista);
-        salvarCertificados(novaLista);
-        fecharModal();
+        try {
+            await certificateService.updateCertificateStatus(certSelecionado.id, 'rejected', motivoNegativa, token);
+            alert("Certificado rejeitado.");
+            fecharModal();
+            carregarCertificados();
+        } catch (err) {
+            alert("Erro ao rejeitar certificado: " + err.message);
+        }
     };
+
 
     const fecharModal = () => {
         setShowModalNegar(false);
@@ -107,33 +141,59 @@ function ValidarCertificados() {
         setCertSelecionado(null);
     };
 
-    const handleReverter = (id) => {
-        setCertificados(prev => prev.map(c => c.id === id ? { ...c, status: 'pendente', observacao: '' } : c));
+    const handleReverter = async (id) => {
+        try {
+            await certificateService.updateCertificateStatus(id, 'pending', '', token);
+            alert("Certificado revertido para pendente.");
+            carregarCertificados();
+        } catch (err) {
+            alert("Erro ao reverter certificado: " + err.message);
+        }
     };
 
+
     const gradientStyle = { background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', color: 'white' };
-    const certificadosFiltrados = certificados.filter(c => c.status === abaAtiva);
+
+    const certificadosFiltrados = certificados.filter(c => {
+        const matchesBusca = c.alunoNome.toLowerCase().includes(buscaAluno.toLowerCase()) ||
+            c.titulo.toLowerCase().includes(buscaAluno.toLowerCase());
+
+        return matchesBusca;
+    });
+
+
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3 mb-0">
+            <Navbar bg="white" expand={false} expanded={expanded} onToggle={setExpanded} className="shadow-sm py-3">
                 <Container fluid className="px-5">
-                    <Navbar.Brand href="#"><Image src={LogoNextCertify} alt="Logo" height="40" /></Navbar.Brand>
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link href="#" className="mx-2 text-dark">Alunos</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Tutores</Nav.Link>
-                            <Nav.Link href="#" className="mx-2 text-dark">Predefinições</Nav.Link>
+                    <Navbar.Brand href="#" className="d-flex align-items-center">
+                        <Image src={LogoNextCertify} alt="Logo NextCertify" height="40" />
+                    </Navbar.Brand>
 
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="text-center mx-auto fw-medium mb-2">
+                            <Nav.Link onClick={() => navigate('/coordenador')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark fw-bold">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/atribuir-papel')} className="mx-2 text-dark">Atribuir Papel</Nav.Link>
                         </Nav>
-                        <div className="d-flex align-items-center gap-3">
+
+                        <div className="d-flex justify-content-center align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario?.nome}</span>
                             </div>
-                            <Button variant="outline-danger" size="sm" onClick={handleLogout} className="d-flex align-items-center gap-2">
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
                                 <FaSignOutAlt size={16} /> Sair
                             </Button>
                         </div>
@@ -150,9 +210,9 @@ function ValidarCertificados() {
                             </div>
                         </Col>
                         <Col>
-                            <h3 className="mb-0 fw-bold">{usuario.name}</h3>
+                            <h3 className="mb-0 fw-bold">{usuario?.nome}</h3>
                             <Badge bg="light" text="dark" className="text-uppercase px-3 py-2 mt-1 shadow-sm">
-                                {usuario.role || 'Bolsista'}
+                                {userRole(usuario?.role)}
                             </Badge>
                         </Col>
                     </Row>
@@ -174,8 +234,12 @@ function ValidarCertificados() {
                             <Form.Group>
                                 <Form.Label className="fw-bold text-dark small text-uppercase">Curso</Form.Label>
                                 <Form.Select value={filtroCurso} onChange={(e) => setFiltroCurso(e.target.value)}>
-                                    <option>Sistemas de Informação</option>
-                                    <option>Engenharia de Software</option>
+                                    <option value="">Todos os cursos</option>
+                                    {cursos.map((curso, index) => (
+                                        <option key={index} value={curso}>
+                                            {curso}
+                                        </option>
+                                    ))}
                                 </Form.Select>
                             </Form.Group>
                         </Col>
@@ -191,61 +255,78 @@ function ValidarCertificados() {
                     </Row>
                 </Card>
 
+                {error && (
+                    <Alert variant="danger" className="text-center shadow-sm py-4 rounded-4 mb-4">
+                        <FaExclamationTriangle className="me-2" size={24} />
+                        {error}
+                        <div className="mt-3">
+                            <Button variant="outline-danger" size="sm" onClick={carregarCertificados}>Tentar Novamente</Button>
+                        </div>
+                    </Alert>
+                )}
+
                 <h4 className="text-primary fw-bold mb-4 px-2">{abaAtiva === 'pendente' ? 'Certificados para Validação' : abaAtiva === 'aprovado' ? 'Certificados Aprovados' : 'Certificados Negados'}</h4>
 
-                <Row className="g-4 mb-5 text-start">
-                    {certificadosFiltrados.length > 0 ? (
-                        certificadosFiltrados.map(cert => (
-                            <Col key={cert.id} xs={12}>
-                                <Card className={`border-0 shadow-sm border-start border-4 ${abaAtiva === 'aprovado' ? 'border-success' : abaAtiva === 'negado' ? 'border-danger' : 'border-primary'}`}>
-                                    <Card.Body className="p-4">
-                                        <Row className="align-items-center">
-                                            <Col md={7}>
-                                                <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                                    <h5 className="fw-bold text-dark mb-1">{cert.titulo}</h5>
-                                                    <Badge bg="info" className="px-2 py-1 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px'}}>
-                                                        {cert.categoria || 'Geral'}
-                                                    </Badge>
-                                                </div>
-                                                <div className="text-muted fw-bold small mb-1">
-                                                    Aluno: <span className="text-dark">{cert.alunoNome || "Não informado"}</span>
-                                                </div>
-                                                {/*função para on=bservação da negação do certificado*/}
-                                                {cert.status === 'negado' && cert.observacao && (
-                                                    <div className="bg-light p-3 rounded mb-3 border-start border-danger border-3 shadow-sm">
-                                                        <small className="text-danger fw-bold d-block mb-1"><FaExclamationTriangle className="me-1" />Motivo da Rejeição:</small>
-                                                        <span className="text-dark italic">{cert.observacao}</span>
+                {loading ? (
+                    <div className="text-center py-5">
+                        <Spinner animation="border" variant="primary" />
+                        <p className="mt-2 text-muted">Carregando certificados...</p>
+                    </div>
+                ) : (
+                    <Row className="g-4 mb-5 text-start">
+                        {certificadosFiltrados.length > 0 ? (
+                            certificadosFiltrados.map(cert => (
+                                <Col key={cert.id} xs={12}>
+                                    <Card className={`border-0 shadow-sm border-start border-4 ${abaAtiva === 'aprovado' ? 'border-success' : abaAtiva === 'negado' ? 'border-danger' : 'border-primary'}`}>
+                                        <Card.Body className="p-4">
+                                            <Row className="align-items-center">
+                                                <Col md={7}>
+                                                    <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                                        <h5 className="fw-bold text-dark mb-1">{cert.titulo}</h5>
+                                                        <Badge bg="info" className="px-2 py-1 text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>
+                                                            {cert.category || 'Geral'}
+                                                        </Badge>
                                                     </div>
-                                                )}
-                                                <div className="d-flex gap-4 mt-2">
-                                                    <span className="small text-muted fw-bold"><FaCalendarAlt className="me-1 text-primary" /> {cert.periodo}</span>
-                                                    <span className="small text-muted fw-bold"><FaClock className="me-1 text-primary" /> {cert.horas}</span>
-                                                </div>
-                                            </Col>
+                                                    <div className="text-muted fw-bold small mb-1">
+                                                        Aluno: <span className="text-dark">{cert.alunoNome || "Não informado"}</span>
+                                                    </div>
+                                                    {cert.status === 'negado' && cert.observacao && (
+                                                        <div className="bg-light p-3 rounded mb-3 border-start border-danger border-3 shadow-sm">
+                                                            <small className="text-danger fw-bold d-block mb-1"><FaExclamationTriangle className="me-1" />Motivo da Rejeição:</small>
+                                                            <span className="text-dark italic">{cert.observacao}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="d-flex gap-4 mt-2">
+                                                        <span className="small text-muted fw-bold"><FaCalendarAlt className="me-1 text-primary" /> {cert.periodo}</span>
+                                                        <span className="small text-muted fw-bold"><FaClock className="me-1 text-primary" /> {cert.horas}</span>
+                                                    </div>
+                                                </Col>
 
-                                            <Col md={5} className="d-flex justify-content-md-end gap-2 mt-3 mt-md-0">
-                                                <Button variant="outline-primary" className="fw-bold d-flex align-items-center gap-2" onClick={() => handleVerPDF(cert)}><FaCertificate style={{ color: '#FFD43B' }} /> Ver PDF</Button>
+                                                <Col md={5} className="d-flex justify-content-md-end gap-2 mt-3 mt-md-0">
+                                                    <Button variant="outline-primary" className="fw-bold d-flex align-items-center gap-2" onClick={() => handleVerPDF(cert)}><FaCertificate style={{ color: '#FFD43B' }} /> Ver PDF</Button>
 
-                                                {abaAtiva === 'pendente' ? (
-                                                    <>
-                                                        <Button variant="success" className="fw-bold" onClick={() => handleAprovar(cert.id)}><FaCheckCircle className="me-1" /> Aprovar</Button>
-                                                        <Button variant="danger" className="fw-bold" onClick={() => abrirModalNegar(cert)}><FaTimesCircle className="me-1" /> Negar</Button>
-                                                    </>
-                                                ) : (
-                                                    <Button variant="outline-secondary" size="sm" onClick={() => handleReverter(cert.id)}><FaUndo className="me-1" /> Reverter para Pendente</Button>
-                                                )}
-                                            </Col>
-                                        </Row>
-                                    </Card.Body>
-                                </Card>
+                                                    {abaAtiva === 'pendente' ? (
+                                                        <>
+                                                            <Button variant="success" className="fw-bold" onClick={() => handleAprovar(cert.id)}><FaCheckCircle className="me-1" /> Aprovar</Button>
+                                                            <Button variant="danger" className="fw-bold" onClick={() => abrirModalNegar(cert)}><FaTimesCircle className="me-1" /> Negar</Button>
+                                                        </>
+                                                    ) : (
+                                                        <Button variant="outline-secondary" size="sm" onClick={() => handleReverter(cert.id)}><FaUndo className="me-1" /> Reverter para Pendente</Button>
+                                                    )}
+                                                </Col>
+                                            </Row>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))
+                        ) : (
+                            <Col xs={12} className="text-center py-5">
+                                <p className="text-muted fs-5">Nenhum certificado encontrado nesta categoria.</p>
                             </Col>
-                        ))
-                    ) : (
-                        <Col xs={12} className="text-center py-5">
-                            <p className="text-muted fs-5">Nenhum certificado encontrado nesta categoria.</p>
-                        </Col>
-                    )}
-                </Row>
+                        )}
+                    </Row>
+                )}
+
             </Container>
 
             <Modal show={showModalNegar} onHide={fecharModal} centered size="lg">

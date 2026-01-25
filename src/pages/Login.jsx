@@ -63,12 +63,10 @@ function Login() {
             const data = await login();
             
             const decoded = jwtDecode(data.token);
-            const dadosSalvos = JSON.parse(localStorage.getItem("curso-ano-semestre"));
+            const dadosSalvos = JSON.parse(localStorage.getItem("semestre"));
 
             localStorage.setItem("usuarioLogado", JSON.stringify({
                 ...data.usuario,
-                curso: dadosSalvos?.curso,
-                anoIngresso: dadosSalvos?.anoIngresso,
                 semestre: dadosSalvos?.semestre,
                 role: decoded.role
             }));

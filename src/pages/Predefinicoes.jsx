@@ -1,5 +1,5 @@
-import { Container, Row, Col, Button, Navbar, Nav, Form, Image, Card, Spinner, Modal } from 'react-bootstrap';
-import { FaBell, FaUserCircle, FaSignOutAlt, FaSave, FaPlus } from 'react-icons/fa';
+import { Container, Row, Col, Button, Navbar, Nav, Form, Image, Card, Spinner, Modal, Badge } from 'react-bootstrap';
+import { FaBell, FaUserCircle, FaSignOutAlt, FaSave, FaPlus, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LogoNextCertify from '../img/NextCertify.png';
@@ -23,6 +23,7 @@ function Predefinicoes() {
     const [alunos, setAlunos] = useState([]);
     const [todosUsuarios, setTodosUsuarios] = useState([]);
     const [vinculos, setVinculos] = useState([]);
+    const [cargasHorarias, setCargasHorarias] = useState([]);
 
     const [carregando, setCarregando] = useState(true);
     const [expanded, setExpanded] = useState(false);
@@ -45,8 +46,18 @@ function Predefinicoes() {
     useEffect(() => {
         if (periodoSelecionado && token) {
             carregarVinculos();
+            carregarCargas(periodoSelecionado);
         }
     }, [periodoSelecionado, token]);
+
+    const carregarCargas = async (id) => {
+        try {
+            const data = await predefinicoesService.listCargasHorarias(id, token);
+            setCargasHorarias(data);
+        } catch (error) {
+            console.error("Erro ao carregar cargas horárias:", error);
+        }
+    };
 
     const carregarDados = async () => {
         try {
@@ -54,7 +65,7 @@ function Predefinicoes() {
             const [periodosData, tutoresData, alunosData, todosUsersData] = await Promise.all([
                 predefinicoesService.listPeriodos(token),
                 predefinicoesService.listTutors(token),
-                predefinicoesService.listStudents(token),
+                predefinicoesService.listScholarshipHolders(token),
                 roleService.listAllUsers(token)
             ]);
 
@@ -68,8 +79,9 @@ function Predefinicoes() {
             if (periodosList.length > 0) {
                 const periodoAtivo = periodosList.find(p => p.ativo) || periodosList[0];
                 setPeriodoSelecionado(periodoAtivo.id);
+                await carregarCargas(periodoAtivo.id);
             }
-            
+
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
 
@@ -135,8 +147,20 @@ function Predefinicoes() {
             alert("Configuração de horas salva com sucesso!");
             setCategoriaSelecionada("");
             setHorasMinimas("");
+            carregarCargas(periodoSelecionado);
         } catch (error) {
             alert(`Erro ao salvar: ${error.message}`);
+        }
+    };
+
+    const handleRemoverCarga = async (id) => {
+        if (!window.confirm("Deseja realmente remover esta regra de carga horária?")) return;
+        try {
+            await predefinicoesService.deleteCargaHoraria(id, token);
+            alert("Regra removida com sucesso!");
+            carregarCargas(periodoSelecionado);
+        } catch (error) {
+            alert(`Erro ao remover: ${error.message}`);
         }
     };
 
@@ -192,6 +216,7 @@ function Predefinicoes() {
     if (!usuario) return <div className='p-5 text-center'>Carregando....</div>;
 
     const periodoAtual = periodos.find(p => p.id === periodoSelecionado);
+
 
     return (
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -312,7 +337,42 @@ function Predefinicoes() {
                             </div>
                         </Form>
 
+
+
+                        <div className="mb-5">
+                            <h3 className="h5 mb-3" style={{ color: '#0f52ba' }}>Regras Salvas para este Período</h3>
+                            <Row>
+                                {cargasHorarias.length === 0 ? (
+                                    <Col><p className="text-muted">Nenhuma regra definida.</p></Col>
+                                ) : (
+                                    cargasHorarias.map(c => (
+                                        <Col md={4} key={c.id} className="mb-3">
+                                            <Card className="border-0 shadow-sm">
+                                                <Card.Body className="d-flex justify-content-between align-items-center py-2">
+                                                    <div>
+                                                        <span className="fw-bold">{c.categoria === 'EVENTOS' ? 'Eventos' : c.categoria === 'MONITORIA' ? 'Monitoria' : 'Estudos Individuais'}:</span>
+                                                        <span className="ms-2">{c.horasMinimas}h</span>
+                                                    </div>
+                                                    <Button variant="link" className="text-danger p-0" onClick={() => handleRemoverCarga(c.id)}>
+                                                        <FaTrash size={14} />
+                                                    </Button>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    ))
+                                )}
+                            </Row>
+                            {cargasHorarias.length > 0 && (
+                                <div className="text-end mt-2">
+                                    <Badge bg="primary" className="p-2">
+                                        Total do Período: {cargasHorarias.reduce((acc, curr) => acc + curr.horasMinimas, 0)}h
+                                    </Badge>
+                                </div>
+                            )}
+                        </div>
+
                         <Form className='mb-5 p-4 bg-white rounded shadow-sm' onSubmit={handleAtribuirTutoria}>
+
                             <h2 className="h4 mb-4" style={{ color: '#0f52ba' }}>Vincular Tutor e Aluno</h2>
 
 
@@ -432,7 +492,8 @@ function Predefinicoes() {
                                     <Form.Control
                                         type="date"
                                         value={novoPeriodoForm.dataInicio}
-                                        disabled={true}
+                                        onChange={(e) => setNovoPeriodoForm({ ...novoPeriodoForm, dataInicio: e.target.value })}
+                                        required
                                     />
 
                                 </Form.Group>
@@ -443,7 +504,8 @@ function Predefinicoes() {
                                     <Form.Control
                                         type="date"
                                         value={novoPeriodoForm.dataFim}
-                                        disabled={true}
+                                        onChange={(e) => setNovoPeriodoForm({ ...novoPeriodoForm, dataFim: e.target.value })}
+                                        required
                                     />
 
                                 </Form.Group>

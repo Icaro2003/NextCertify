@@ -35,7 +35,11 @@ const predefinicoesService = {
 
         const data = await response.json();
 
-        const students = data.filter(user => !user.tutor && !user.coordenador && !user.bolsista);
+        const students = data.filter(
+            user =>
+                !user.tutor &&
+                !user.coordenador
+        );
 
         return students;
     },
@@ -133,6 +137,18 @@ const predefinicoesService = {
         }
         return await response.json();
     },
+    async deleteCargaHoraria(id, token) {
+        const response = await fetch(`${API_URL}/carga-horaria-minima/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Falha ao remover carga horária.');
+        }
+        return response.status === 204 ? null : await response.json();
+    },
+
 
     async createVinculo(payload, token) {
         const response = await fetch(`${API_URL}/alocar-tutor-aluno`, {
@@ -152,7 +168,11 @@ const predefinicoesService = {
     },
 
     async listVinculos(periodoId, token) {
-        const response = await fetch(`${API_URL}/alocar-tutor-aluno?periodoId=${periodoId}`, {
+        const url = periodoId
+            ? `${API_URL}/alocar-tutor-aluno?periodoId=${periodoId}`
+            : `${API_URL}/alocar-tutor-aluno`;
+
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) {
@@ -161,6 +181,7 @@ const predefinicoesService = {
         }
         return await response.json();
     },
+
 
     async deleteVinculo(id, token) {
         const response = await fetch(`${API_URL}/alocar-tutor-aluno/${id}`, {

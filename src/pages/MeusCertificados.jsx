@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import LogoNextCertify from '../img/NextCertify.png';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 import certificateService from '../services/certificateService';
+import predefinicoesService from '../services/predefinicoesService';
 
 function MeusCertificados() {
     const navigate = useNavigate();
@@ -28,16 +29,38 @@ function MeusCertificados() {
         const carregarDados = async () => {
             try {
                 setLoading(true);
-                const data = await certificateService.listCertificates(usuario.id, token);
+                const certificadosData = await certificateService.listCertificates(usuario.id, token);
 
-                const formatados = data.map(c => ({
+                const formatados = certificadosData.map(c => ({
                     ...c,
                     statusDisplay: c.status === 'approved' ? 'Aprovado' : (c.status === 'rejected' ? 'Negado' : 'Em espera'),
                     periodo: `${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate).toLocaleDateString()}`
                 }));
 
-                const horasAprovadas = data.filter(c => c.status === 'approved').reduce((acc, curr) => acc + (Number(curr.workload) || 0), 0);
-                const meta = 100;
+                const horasAprovadas = certificadosData.filter(c => c.status === 'approved').reduce((acc, curr) => acc + (Number(curr.workload) || 0), 0);
+
+                let meta = 100; // Valor padrão se não encontrar vínculo
+
+                try {
+                    const vinculos = await predefinicoesService.listVinculos(null, token);
+                    const meuVinculo = vinculos.find(v =>
+                        (usuario.bolsista && v.bolsistaId === usuario.bolsista.id) ||
+                        v.usuarioId === usuario.id
+                    );
+
+                    if (meuVinculo) {
+                        const cargas = await predefinicoesService.listCargasHorarias(meuVinculo.periodoId, token);
+                        if (cargas.length > 0) {
+                            const totalMeta = cargas.reduce((acc, curr) => acc + (Number(curr.horasMinimas) || 0), 0);
+                            if (totalMeta > 0) meta = totalMeta;
+                        }
+                    } else {
+                        console.warn("Nenhum vínculo de tutoria encontrado para este bolsista.");
+                    }
+                } catch (preError) {
+                    console.error("Erro ao carregar meta dinâmica:", preError);
+                }
+
 
                 setCertificados(formatados);
                 setResumoHoras({
@@ -47,6 +70,7 @@ function MeusCertificados() {
                     progresso: Math.min(100, (horasAprovadas / meta) * 100)
                 });
                 setError(null);
+
             } catch (err) {
                 setError("Erro ao carregar dados do servidor.");
                 console.error(err);
@@ -77,6 +101,7 @@ function MeusCertificados() {
             instituicao: '',
             descricao: ''
         });
+
         setShowModal(true);
         e.target.value = null;
     };
@@ -153,10 +178,11 @@ function MeusCertificados() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/aluno')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link className="mx-2 text-dark fw-bold">Certificados</Nav.Link>
                             <Nav.Link onClick={() => navigate('/avaliacao-tutoria')} className="mx-2 text-dark">Avaliação Tutoria</Nav.Link>
                         </Nav>
+
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
@@ -275,11 +301,11 @@ function MeusCertificados() {
                             <Form.Label className="fw-bold small">Categoria Certificado</Form.Label>
                             <Form.Select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
                                 <option value="EVENTOS">Eventos</option>
-                                <option value="EXTENSAO">Extensão</option>
-                                <option value="PESQUISA">Pesquisa</option>
-                                <option value="ENSINO">Ensino</option>
+                                <option value="MONITORIA">Monitoria</option>
+                                <option value="ESTUDOS_INDIVIDUAIS">Estudos Individuais</option>
                             </Form.Select>
                         </Form.Group>
+
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">

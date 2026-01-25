@@ -44,7 +44,11 @@ function Cadastro() {
             senha: dados.senha,
             matricula: dados.matricula,
             cpf: dados.cpf,
-            status: "ATIVO"
+            status: "ATIVO",
+            bolsista: {
+                anoIngresso: parseInt(dados.anoIngresso),
+                curso: dados.curso
+            }
         };
 
         const response = await fetch("http://localhost:3000/api/users", {
@@ -57,11 +61,11 @@ function Cadastro() {
 
         const data = await response.json();
 
-        const { curso, anoIngresso, semestre } = dados;
-        const dadosCadastroNovos = { curso, anoIngresso, semestre };
+        const { semestre } = dados;
+        const dadosCadastroNovos = { semestre };
 
-        localStorage.setItem("curso-ano-semestre", JSON.stringify(dadosCadastroNovos));
-        console.log(JSON.parse(localStorage.getItem("curso-ano-semestre")));
+        localStorage.setItem("semestre", JSON.stringify(dadosCadastroNovos));
+        console.log(JSON.parse(localStorage.getItem("semestre")));
 
         if (!response.ok) {
             throw new Error(data.error || "Erro ao cadastrar aluno!");
@@ -175,7 +179,7 @@ function Cadastro() {
                                         <option value="2">2º Semestre</option>
                                     </Form.Select>
                                 </div>
-                                
+
                                 <div className="mb-3">
                                     <Form.Select
                                         required
