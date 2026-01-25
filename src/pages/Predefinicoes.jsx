@@ -27,7 +27,6 @@ function Predefinicoes() {
     const [carregando, setCarregando] = useState(true);
     const [expanded, setExpanded] = useState(false);
 
-    // Estados para o Modal de Novo Período
     const [showNewPeriodModal, setShowNewPeriodModal] = useState(false);
     const [novoPeriodoForm, setNovoPeriodoForm] = useState({
         nome: '',
@@ -59,14 +58,7 @@ function Predefinicoes() {
                 roleService.listAllUsers(token)
             ]);
 
-            console.log("Períodos recebidos:", periodosData);
-            console.log("Tutores recebidos:", tutoresData);
-            console.log("Alunos recebidos:", alunosData);
-            console.log("Todos Usuários:", todosUsersData);
-
             const periodosList = Array.isArray(periodosData) ? periodosData : (periodosData.periodos || []);
-
-            console.log("Períodos processados:", periodosList);
 
             setPeriodos(periodosList);
             setTutores(tutoresData);
@@ -75,11 +67,9 @@ function Predefinicoes() {
 
             if (periodosList.length > 0) {
                 const periodoAtivo = periodosList.find(p => p.ativo) || periodosList[0];
-                console.log("Período selecionado automaticamente:", periodoAtivo);
                 setPeriodoSelecionado(periodoAtivo.id);
-            } else {
-                console.warn("Nenhum período encontrado! Você precisa criar um período primeiro.");
             }
+            
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
 
@@ -119,7 +109,7 @@ function Predefinicoes() {
                 descricao: '',
                 ativo: true
             });
-            await carregarDados(); // Recarrega a lista e seleciona o novo
+            await carregarDados();
         } catch (error) {
             alert(`Erro ao criar período: ${error.message}`);
         } finally {

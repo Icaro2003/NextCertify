@@ -17,8 +17,6 @@ function RecordsTable({ user, route }) {
                     <th style={theadPrimary}>#</th>
                     <th style={theadPrimary}>Nome</th>
                     <th style={theadPrimary}>E-mail</th>
-                    <th style={theadPrimary}>Matrícula</th>
-                    <th style={theadPrimary}>Semestre</th>
                     <th style={theadPrimary}>Ações</th>
                 </tr>
             </thead>
@@ -27,11 +25,8 @@ function RecordsTable({ user, route }) {
                     user.map((u, index) => (
                         <tr key={u.id}>
                             <td>{index + 1}</td>
-                            <td>{u.name}</td>
+                            <td>{u.nome}</td>
                             <td>{u.email}</td>
-                            <td>{u.matricula}</td>
-                            <td>{u.semestre}</td>
-                            {/* <td>{u.certificados}</td> */}
                             <td>
                                 <Button
                                     variant="primary"

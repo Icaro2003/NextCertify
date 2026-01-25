@@ -35,12 +35,11 @@ const predefinicoesService = {
 
         const data = await response.json();
 
-        const students = data.filter(user =>
-            !user.bolsista && !user.tutor && !user.coordenador
-        );
+        const students = data.filter(user => !user.tutor && !user.coordenador && !user.bolsista);
 
         return students;
     },
+
 
 
     async listPeriodos(token) {
