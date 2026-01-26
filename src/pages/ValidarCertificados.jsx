@@ -146,8 +146,10 @@ function ValidarCertificados() {
         try {
             await certificateService.updateCertificateStatus(id, 'pending', '', token);
             alert("Certificado revertido para pendente.");
+            setAbaAtiva('pendente');
             carregarCertificados();
         } catch (err) {
+
             alert("Erro ao reverter certificado: " + err.message);
         }
     };
@@ -156,11 +158,14 @@ function ValidarCertificados() {
     const gradientStyle = { background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', color: 'white' };
 
     const certificadosFiltrados = certificados.filter(c => {
-        const matchesBusca = c.alunoNome.toLowerCase().includes(buscaAluno.toLowerCase()) ||
-            c.titulo.toLowerCase().includes(buscaAluno.toLowerCase());
+        const aluno = c.alunoNome || "";
+        const titulo = c.titulo || "";
+        const matchesBusca = aluno.toLowerCase().includes(buscaAluno.toLowerCase()) ||
+            titulo.toLowerCase().includes(buscaAluno.toLowerCase());
 
         return matchesBusca;
     });
+
 
 
 
@@ -202,7 +207,7 @@ function ValidarCertificados() {
                 </Container>
             </Navbar>
 
-            <div style={gradientStyle} className="py-5 mb-4 shadow-sm">
+            {/* <div style={gradientStyle} className="py-5 mb-4 shadow-sm">
                 <Container>
                     <Row className="align-items-center">
                         <Col xs="auto">
@@ -218,9 +223,9 @@ function ValidarCertificados() {
                         </Col>
                     </Row>
                 </Container>
-            </div>
+            </div> */}
 
-            <Container className="flex-grow-1">
+            <Container className="flex-grow-1 p-5">
                 <div className="d-flex justify-content-center mb-4">
                     <ButtonGroup className="bg-white shadow-sm p-1 rounded-pill">
                         <Button variant={abaAtiva === 'pendente' ? 'primary' : 'white'} className="rounded-pill px-4 fw-bold" onClick={() => setAbaAtiva('pendente')}><FaListUl className="me-2" />Pendentes</Button>
