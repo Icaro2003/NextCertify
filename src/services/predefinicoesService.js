@@ -167,10 +167,13 @@ const predefinicoesService = {
         return await response.json();
     },
 
-    async listVinculos(periodoId, token) {
-        const url = periodoId
-            ? `${API_URL}/alocar-tutor-aluno?periodoId=${periodoId}`
-            : `${API_URL}/alocar-tutor-aluno`;
+    async listVinculos(filters, token) {
+        const params = new URLSearchParams();
+        if (filters?.periodoId) params.append('periodoId', filters.periodoId);
+        if (filters?.tutorId) params.append('tutorId', filters.tutorId);
+        if (filters?.bolsistaId) params.append('bolsistaId', filters.bolsistaId);
+
+        const url = `${API_URL}/alocar-tutor-aluno?${params.toString()}`;
 
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -181,6 +184,7 @@ const predefinicoesService = {
         }
         return await response.json();
     },
+
 
 
     async deleteVinculo(id, token) {

@@ -72,7 +72,7 @@ function AvaliacaoTutoria() {
                 const [tutores, activePeriods, vinculos] = await Promise.all([
                     predefinicoesService.listTutors(token),
                     avaliacaoTutoriaService.listActivePeriods(token),
-                    predefinicoesService.listVinculos(null, token)
+                    predefinicoesService.listVinculos({}, token)
                 ]);
 
                 setListaTutores(tutores);

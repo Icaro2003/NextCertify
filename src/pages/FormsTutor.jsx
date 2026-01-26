@@ -1,18 +1,17 @@
-import { Container, Row, Col, Button, Navbar, Nav, Form, Image } from 'react-bootstrap';
+import { Container, Row, Col, Button, Navbar, Nav, Form, Image, Spinner } from 'react-bootstrap';
+
 import { FaBell, FaUserCircle, FaSignOutAlt, FaSave, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LogoNextCertify from '../img/NextCertify.png';
+import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
+import formAcompanhamentoService from '../services/formAcompanhamentoService';
 
 function FormsTutor() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const nomeAlunoSelecionado = location.state?.alunoNome || "João Silva de Lima Barreto";
-    const [usuario] = useState(() => {
-        const saved = localStorage.getItem("usuarioLogado");
-        return saved ? JSON.parse(saved) : null;
-    });
+    const { usuario, token, userRole, handleLogout } = useAuthenticatedUser();
 
     const [dataAtual] = useState(() => {
         const hoje = new Date();
@@ -20,51 +19,60 @@ function FormsTutor() {
     });
 
     const [formData, setFormData] = useState({
-        aluno: location.state?.aluno?.aluno || nomeAlunoSelecionado,
+        aluno: location.state?.alunoNome || "",
+        bolsistaId: location.state?.bolsistaId || "",
+        periodoId: location.state?.periodoId || "",
         virtuais: 0,
         presenciais: 0,
         dificuldadeTipo: 'selecionar',
         descricao: ''
     });
 
-    useEffect(() => {
-        if (!usuario) {
-            navigate('/');
-        } else if (usuario.role !== 'tutor') {
-            alert("Acesso negado. Está página é exclusiva para tutores.");
-            if (usuario.role === 'coordenador') navigate('/coordenador');
-            else if (userParsed.role === 'bolsista') navigate('/bolsista');
-            else if (userParsed.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [usuario, navigate]);
+    const [enviando, setEnviando] = useState(false);
 
-    const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
-        navigate('/');
-    };
 
-    const handleSalvar = (e) => {
+    const handleSalvar = async (e) => {
         e.preventDefault();
-        const novoRelatorio = {
-            id: Date.now(),
-            aluno: formData.aluno,
-            tutorNome: usuario.name,
-            tutorMatricula: usuario?.matricula,
-            matricula: location.state?.aluno?.matricula || "000000",
-            data: dataAtual,
-            status: "concluido",
-            dificuldadeTipo: formData.dificuldadeTipo,
-            encontrosTotais: Number(formData.virtuais) + Number(formData.presenciais),
-            detalhes: formData
+
+        if (!formData.bolsistaId || !formData.periodoId) {
+            alert("Erro: Dados do aluno ou período não identificados. Volte para a lista de alunos e tente novamente.");
+            return;
+        }
+
+        if (formData.dificuldadeTipo === 'selecionar') {
+            alert("Por favor, selecione uma dificuldade.");
+            return;
+        }
+
+        // Mapear modalidade: se houver encontros em ambos, prioriza o que tiver mais ou define um padrão
+        const modalidade = Number(formData.virtuais) >= Number(formData.presenciais) ? 'VIRTUAL' : 'PRESENCIAL';
+
+        const payload = {
+            tutorId: usuario.tutor.id,
+            bolsistaId: formData.bolsistaId,
+            periodoId: formData.periodoId,
+            modalidadeReuniao: modalidade,
+            maiorDificuldadeAluno: formData.dificuldadeTipo,
+            quantidadeReunioes: Number(formData.virtuais) + Number(formData.presenciais),
+            quantidadeVirtuais: Number(formData.virtuais),
+            quantidadePresenciais: Number(formData.presenciais),
+            descricaoDificuldade: formData.descricao,
+            observacoes: "" // Campo extra se necessário futuramente
         };
 
-        const relatoriosSalvos = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
-        relatoriosSalvos.push(novoRelatorio);
-        localStorage.setItem("relatorios_cadastrados", JSON.stringify(relatoriosSalvos));
-        alert(`Relatório de ${formData.aluno} enviado com sucesso!`);
-        navigate('/relatorios-tutor');
+
+        try {
+            setEnviando(true);
+            await formAcompanhamentoService.createForm(payload, token);
+            alert(`Relatório de ${formData.aluno} enviado com sucesso!`);
+            navigate('/relatorios-tutor');
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setEnviando(false);
+        }
     };
+
 
     if (!usuario || usuario.role !== 'tutor') {
         return <div className="p-5 text-center">Verificando permissões...</div>;
@@ -81,16 +89,15 @@ function FormsTutor() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Home</Nav.Link>
                             <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Formulário</Nav.Link>
                             <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark">Relatórios</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
                                 <FaSignOutAlt size={16} /> Sair
@@ -118,7 +125,7 @@ function FormsTutor() {
                             <Col md={6}>
                                 <Form.Group controlId="formTutor">
                                     <Form.Label className="text-primary fw-medium">Tutor</Form.Label>
-                                    <Form.Control type="text" value={usuario.name} readOnly className="bg-light" />
+                                    <Form.Control type="text" value={usuario.nome} readOnly className="bg-light" />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -133,8 +140,9 @@ function FormsTutor() {
                             <Col md={6}>
                                 <Form.Group controlId="formAluno">
                                     <Form.Label className="text-primary fw-medium">Tutorando</Form.Label>
-                                    <Form.Control type="text" value={formData.aluno} onChange={(e) => setFormData({ ...formData, aluno: e.target.value })} placeholder="Nome do aluno" />
+                                    <Form.Control type="text" value={formData.aluno} readOnly className="bg-light" />
                                 </Form.Group>
+
                             </Col>
                             <Col md={6}>
                                 <Form.Group controlId="formEncontrosVirtuais">
@@ -171,10 +179,18 @@ function FormsTutor() {
                         </Form.Group>
 
                         <div className="d-flex justify-content-end">
-                            <Button variant="primary" type="submit" className="px-4 py-2 fw-bold d-flex align-items-center gap-2" style={{ backgroundColor: '#0f52ba', borderColor: '#0f52ba' }}>
-                                <FaSave /> Salvar Preenchimento
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                disabled={enviando}
+                                className="px-4 py-2 fw-bold d-flex align-items-center gap-2"
+                                style={{ backgroundColor: '#0f52ba', borderColor: '#0f52ba' }}
+                            >
+                                {enviando ? <Spinner size="sm" /> : <FaSave />}
+                                {enviando ? 'Salvando...' : 'Salvar Preenchimento'}
                             </Button>
                         </div>
+
                     </Form>
                 </div>
             </Container>

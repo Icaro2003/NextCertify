@@ -104,9 +104,10 @@ function Predefinicoes() {
 
     const carregarVinculos = async () => {
         try {
-            const vinculosData = await predefinicoesService.listVinculos(periodoSelecionado, token);
+            const vinculosData = await predefinicoesService.listVinculos({ periodoId: periodoSelecionado }, token);
             setVinculos(vinculosData);
         } catch (error) {
+
             console.error("Erro ao carregar vínculos:", error);
         }
     };

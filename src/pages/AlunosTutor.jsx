@@ -1,50 +1,71 @@
-import { Container, Row, Col, Button, Navbar, Nav, Badge, Image, Table } from 'react-bootstrap';
+import { Container, Row, Col, Button, Navbar, Nav, Badge, Image, Table, Spinner } from 'react-bootstrap';
 import { FaBell, FaUserCircle, FaSignOutAlt, FaPen, FaFileAlt, FaEye } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import LogoNextCertify from '../img/NextCertify.png';
-import mockAut from '../mocks/auth-mock.json';
+import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
+import predefinicoesService from '../services/predefinicoesService';
+import formAcompanhamentoService from '../services/formAcompanhamentoService';
+
 
 function AlunosTutor() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const relatoriosSalvos = JSON.parse(localStorage.getItem("relatorios_cadastrados") || "[]");
+    const [listaAlunos, setListaAlunos] = useState([]);
+    const [carregando, setCarregando] = useState(true);
 
-    const [usuario] = useState(() => {
-        const saved = localStorage.getItem("usuarioLogado");
-        return saved ? JSON.parse(saved) : null;
-    });
-
-    const listaAlunos = alunoTutor
-        .filter(aluno => aluno.tutorMatricula === usuario?.matricula)
-        .map(aluno => {
-            const relatoriosDoAluno = relatoriosSalvos.filter(r =>
-                r.aluno.trim().toLowerCase() === aluno.nome.trim().toLowerCase()
-            );
-            const ultimaDataReal = relatoriosDoAluno.length > 0
-                ? relatoriosDoAluno[relatoriosDoAluno.length - 1].data
-                : (aluno.ultimaData || "Sem preenchimento");
-
-            return { ...aluno, ultimaData: ultimaDataReal };
-        });
+    const { usuario, token, userRole, handleLogout } = useAuthenticatedUser();
 
     useEffect(() => {
-        if (!usuario) {
-            navigate('/');
-        } else if (usuario.role !== 'tutor') {
-            alert("Acesso negado. Esta página é exclusiva para tutores.");
-            if (usuario.role === 'coordenador') navigate('/coordenador');
-            else if (usuario.role === 'bolsista') navigate('/bolsista');
-            else if (usuario.role === 'aluno') navigate('/aluno');
-            else navigate('/');
-        }
-    }, [usuario, navigate]);
+        const carregarDados = async () => {
+            if (!token || !usuario || !usuario.tutor) return;
 
-    const handleLogout = () => {
-        localStorage.removeItem("usuarioLogado");
-        navigate('/');
-    };
+            try {
+                setCarregando(true);
+
+                const [vinculos, bolsistas, acompanhamentosData] = await Promise.all([
+                    predefinicoesService.listVinculos({ tutorId: usuario.tutor.id }, token),
+                    predefinicoesService.listScholarshipHolders(token),
+                    formAcompanhamentoService.listByTutor(usuario.tutor.id, token)
+                ]);
+
+                const acompanhamentos = acompanhamentosData.data || [];
+
+                const meusAlunos = vinculos.map(v => {
+                    const bolsista = bolsistas.find(b => b.id === v.bolsistaId || (b.bolsista && b.bolsista.id === v.bolsistaId));
+
+                    const acompanhamentosDoAluno = acompanhamentos
+                        .filter(a => a.bolsistaId === v.bolsistaId)
+                        .sort((a, b) => new Date(b.dataEnvio) - new Date(a.dataEnvio));
+
+                    const ultimaData = acompanhamentosDoAluno.length > 0
+                        ? new Date(acompanhamentosDoAluno[0].dataEnvio).toLocaleDateString()
+                        : "Sem preenchimento";
+
+                    return {
+                        id: v.bolsistaId,
+                        vinculoId: v.id,
+                        periodoId: v.periodoId,
+                        nome: bolsista?.nome || 'Aluno não encontrado',
+                        email: bolsista?.email || '',
+                        matricula: bolsista?.matricula || '---',
+                        ultimaData: ultimaData
+                    };
+                });
+
+
+                setListaAlunos(meusAlunos);
+            } catch (error) {
+                console.error("Erro ao carregar alunos do tutor:", error);
+            } finally {
+                setCarregando(false);
+            }
+        };
+
+        carregarDados();
+    }, [token, usuario]);
+
 
     const gradientStyle = {
         background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)',
@@ -66,16 +87,15 @@ function AlunosTutor() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Home</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/forms-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Formulário</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/home-tutor')} className="mx-2 text-dark fw-bold" style={{ cursor: 'pointer' }}>Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/alunos-tutor')} className="mx-2 text-dark" style={{ cursor: 'pointer' }}>Alunos</Nav.Link>
                             <Nav.Link onClick={() => navigate('/relatorios-tutor')} className="mx-2 text-dark">Relatórios</Nav.Link>
                         </Nav>
                         <div className="d-flex align-items-center gap-3">
                             <FaBell size={20} className="text-primary" style={{ cursor: 'pointer' }} />
                             <div className="d-flex align-items-center gap-2">
                                 <FaUserCircle size={32} className="text-primary" />
-                                <span className="fw-bold text-dark">{usuario.name}</span>
+                                <span className="fw-bold text-dark">{usuario.nome}</span>
                             </div>
                             <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
                                 <FaSignOutAlt size={16} /> Sair
@@ -85,7 +105,6 @@ function AlunosTutor() {
                 </Container>
             </Navbar>
 
-            {/* --- HERO SECTION --- */}
             <div style={{ ...gradientStyle, padding: '40px 0' }}>
                 <Container>
                     <Row className="align-items-center">
@@ -95,8 +114,8 @@ function AlunosTutor() {
                                 <FaUserCircle size={60} />
                             </div>
                             <div>
-                                <h2 className="mb-1 fw-bold fs-3">{usuario.name}</h2>
-                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{usuario.role.toUpperCase()}</Badge>
+                                <h2 className="mb-1 fw-bold fs-3">{usuario.nome}</h2>
+                                <Badge bg="light" text="primary" className="mb-2 px-3 py-1">{userRole(usuario.role)}</Badge>
                                 <p className="mb-0 text-light mt-1 opacity-75 small">
                                     Tutor responsável pelo acompanhamento acadêmico.
                                 </p>
@@ -111,7 +130,6 @@ function AlunosTutor() {
                 </Container>
             </div>
 
-            {/* --- TABELA --- */}
             <Container className="my-5 flex-grow-1">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2 className="text-primary fw-bold mb-0">Meus Alunos Tutorados</h2>
@@ -122,20 +140,28 @@ function AlunosTutor() {
                         <thead>
                             <tr style={{ borderBottom: '2px solid #0f52ba' }}>
                                 <th className="py-3 text-primary">Aluno(a)</th>
-                                <th className="py-3 text-primary">Matrícula</th>
+                                {/* <th className="py-3 text-primary">Matrícula</th> */}
                                 <th className="py-3 text-primary">Último Preenchimento</th>
                                 <th className="py-3 text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {listaAlunos.length > 0 ? (
+                            {carregando ? (
+                                <tr>
+                                    <td colSpan="4" className="text-center py-5">
+                                        <Spinner animation="border" variant="primary" />
+                                        <div className="mt-2 text-muted small">Carregando alunos vinculados...</div>
+                                    </td>
+                                </tr>
+                            ) : listaAlunos.length > 0 ? (
                                 listaAlunos.map((aluno) => (
+
                                     <tr key={aluno.id}>
                                         <td className="py-3">
                                             <div className="fw-bold text-dark">{aluno.nome}</div>
                                             <div className="small text-muted">{aluno.email}</div>
                                         </td>
-                                        <td className="text-muted">{aluno.matricula}</td>
+                                        {/* <td className="text-muted">{aluno.matricula}</td> */}
                                         <td>
                                             <Badge bg={aluno.ultimaData === "Sem preenchimento" ? "secondary" : "info"} className="fw-normal">
                                                 {aluno.ultimaData}
@@ -146,8 +172,16 @@ function AlunosTutor() {
                                                 <Button
                                                     variant="outline-primary"
                                                     size="sm"
-                                                    onClick={() => navigate('/forms-tutor', { state: { alunoNome: aluno.nome, matricula: aluno.matricula } })}
+                                                    onClick={() => navigate('/forms-tutor', {
+                                                        state: {
+                                                            alunoNome: aluno.nome,
+                                                            matricula: aluno.matricula,
+                                                            bolsistaId: aluno.id,
+                                                            periodoId: aluno.periodoId
+                                                        }
+                                                    })}
                                                 >
+
                                                     <FaFileAlt className="me-1" /> Novo Form
                                                 </Button>
                                                 <Button
@@ -174,7 +208,6 @@ function AlunosTutor() {
                 </div>
             </Container>
 
-            {/* --- FOOTER --- */}
             <footer style={{ background: 'linear-gradient(90deg, #005bea 0%, #00c6fb 100%)', padding: '30px 0', textAlign: 'center', color: 'white' }} className="mt-auto">
                 <Container>
                     <h5 className="mb-0">© 2025 - NextCertify</h5>
