@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Container, Row, Col, Form, Image } from "react-bootstrap";
 import { Link, useNavigate } from 'react-router-dom';
 import { MdSupportAgent } from "react-icons/md";
-import LoginIgm from '../img/login.png';
+import LoginIgm from '../img/login-nova.png';
 import InputFlutuante from "../components/InputFlutuante";
 import BotaoPrincipal from "../components/BotaoPrincipal";
 import useAlert from '../hooks/useAlert';
