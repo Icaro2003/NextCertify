@@ -18,6 +18,9 @@ function Predefinicoes() {
     const [horasMinimas, setHorasMinimas] = useState("");
     const [tutorSelecionado, setTutorSelecionado] = useState("");
     const [alunoSelecionado, setAlunoSelecionado] = useState("");
+    const [dataInicioVinculo, setDataInicioVinculo] = useState("");
+    const [dataFimVinculo, setDataFimVinculo] = useState("");
+
 
     const [tutores, setTutores] = useState([]);
     const [alunos, setAlunos] = useState([]);
@@ -47,8 +50,15 @@ function Predefinicoes() {
         if (periodoSelecionado && token) {
             carregarVinculos();
             carregarCargas(periodoSelecionado);
+
+            const p = periodos.find(p => p.id === periodoSelecionado);
+            if (p) {
+                setDataInicioVinculo(p.dataInicio ? new Date(p.dataInicio).toISOString().split('T')[0] : '');
+                setDataFimVinculo(p.dataFim ? new Date(p.dataFim).toISOString().split('T')[0] : '');
+            }
         }
-    }, [periodoSelecionado, token]);
+    }, [periodoSelecionado, token, periodos]);
+
 
     const carregarCargas = async (id) => {
         try {
@@ -178,10 +188,11 @@ function Predefinicoes() {
                 tutorId: tutorSelecionado,
                 bolsistaId: alunoSelecionado,
                 periodoId: periodoSelecionado,
-                dataInicio: new Date(periodoAtual.dataInicio).toISOString(),
-                dataFim: new Date(periodoAtual.dataFim).toISOString(),
+                dataInicio: new Date(dataInicioVinculo).toISOString(),
+                dataFim: dataFimVinculo ? new Date(dataFimVinculo).toISOString() : null,
                 ativo: true
             };
+
 
 
             await predefinicoesService.createVinculo(payload, token);
@@ -381,26 +392,26 @@ function Predefinicoes() {
                                     <>
                                         <Col md={3}>
                                             <Form.Group>
-                                                <Form.Label className="fw-bold">Data Início do Período</Form.Label>
+                                                <Form.Label className="fw-bold">Início da Tutoria</Form.Label>
                                                 <Form.Control
                                                     type="date"
-                                                    value={periodoAtual.dataInicio ? new Date(periodoAtual.dataInicio).toISOString().split('T')[0] : ''}
-                                                    readOnly
-                                                    className="bg-light border-0 shadow-none"
+                                                    value={dataInicioVinculo}
+                                                    onChange={(e) => setDataInicioVinculo(e.target.value)}
+                                                    required
                                                 />
                                             </Form.Group>
                                         </Col>
                                         <Col md={3}>
                                             <Form.Group>
-                                                <Form.Label className="fw-bold">Data Fim do Período</Form.Label>
+                                                <Form.Label className="fw-bold">Fim da Tutoria</Form.Label>
                                                 <Form.Control
                                                     type="date"
-                                                    value={periodoAtual.dataFim ? new Date(periodoAtual.dataFim).toISOString().split('T')[0] : ''}
-                                                    readOnly
-                                                    className="bg-light border-0 shadow-none"
+                                                    value={dataFimVinculo}
+                                                    onChange={(e) => setDataFimVinculo(e.target.value)}
                                                 />
                                             </Form.Group>
                                         </Col>
+
                                     </>
                                 )}
                                 <Col md={3} className='mb-3'>

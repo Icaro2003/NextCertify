@@ -25,12 +25,14 @@ const avaliacaoTutoriaService = {
         });
 
         if (!response.ok) {
-            throw new Error('Não foi possível criar a avaliação.');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Não foi possível criar a avaliação.');
         }
+
 
         const data = await response.json();
         return data;
     }
-}
+};
 
 export default avaliacaoTutoriaService;

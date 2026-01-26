@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import LogoNextCertify from '../img/NextCertify.png';
 import useAuthenticatedUser from '../hooks/useAuthenticatedUser';
 import avaliacaoTutoriaService from '../services/avaliacaoTutoriaService';
+import predefinicoesService from '../services/predefinicoesService';
+import roleService from '../services/roleService';
 
 
 function AvaliacaoTutoria() {
@@ -31,9 +33,7 @@ function AvaliacaoTutoria() {
         comentarioGeral: '',
         recomendariaPrograma: false,
         justificativaRecomendacao: '',
-        aspectosPositivosText: '',
-        aspectosNegativosText: '',
-        sugestoesMelhoriasText: '',
+        periodoAvaliadoText: ''
     });
 
     useEffect(() => {
@@ -41,18 +41,19 @@ function AvaliacaoTutoria() {
             const roleTraduzida = userRole(usuario.role).toLowerCase();
 
 
-            if (roleTraduzida !== 'aluno') {
-                alert("Acesso negado. Esta página é exclusiva para alunos.");
+            if (roleTraduzida !== 'bolsista') {
+                alert("Acesso negado. Esta página é exclusiva para bolsistas.");
                 navigate('/');
             }
-
+            console.log(usuario);
             if (formData.nome === '') {
                 setFormData(prev => ({
                     ...prev,
                     nome: usuario.nome || '',
                     email: usuario.email || '',
-                    curso: usuario.curso || '',
-                    anoIngresso: usuario.anoIngresso || ''
+                    curso: usuario.bolsista?.curso || '',
+                    anoIngresso: usuario.bolsista?.anoIngresso || ''
+
                 }));
             }
         }
@@ -64,17 +65,36 @@ function AvaliacaoTutoria() {
 
     useEffect(() => {
         const carregarDadosIniciais = async () => {
-            if (!token) return;
+            if (!token || !usuario) return;
 
             try {
                 setCarregando(true);
-                const tutores = await fetch("http://localhost:3000/api/users/tutores", {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json());
-                setListaTutores(tutores);
+                const [tutores, activePeriods, vinculos] = await Promise.all([
+                    predefinicoesService.listTutors(token),
+                    avaliacaoTutoriaService.listActivePeriods(token),
+                    predefinicoesService.listVinculos(null, token)
+                ]);
 
-                const activePeriods = await avaliacaoTutoriaService.listActivePeriods(token);
+                setListaTutores(tutores);
                 setPeriodos(activePeriods);
+
+                // Tentar encontrar o tutor vinculado ao aluno logado
+                const meuVinculo = vinculos.find(v => (usuario.bolsista && v.bolsistaId === usuario.bolsista.id) || v.usuarioId === usuario.id);
+
+                if (meuVinculo) {
+                    const tutor = tutores.find(t => t.tutor && t.tutor.id === meuVinculo.tutorId);
+                    const dtInicio = new Date(meuVinculo.dataInicio).toLocaleDateString();
+                    const dtFim = meuVinculo.dataFim ? new Date(meuVinculo.dataFim).toLocaleDateString() : 'Indefinido';
+
+                    setFormData(prev => ({
+                        ...prev,
+                        tutorId: meuVinculo.tutorId,
+                        tutorNome: tutor ? tutor.nome : 'Tutor vinculado',
+                        periodoId: meuVinculo.periodoId, // Sincronizando o período do vínculo
+                        periodoAvaliadoText: `${dtInicio} até ${dtFim}`
+                    }));
+                }
+
 
                 if (activePeriods.length > 0) {
                     setFormData(prev => ({ ...prev, periodoId: activePeriods[0].id }));
@@ -87,7 +107,7 @@ function AvaliacaoTutoria() {
         };
 
         carregarDadosIniciais();
-    }, [token]);
+    }, [token, usuario]);
 
 
     const handleChange = (e) => {
@@ -117,34 +137,25 @@ function AvaliacaoTutoria() {
         const payload = {
             periodoId: formData.periodoId,
             tipoAvaliador: 'ALUNO',
-            // aspectosPositivos: formData.aspectosPositivosText.split('\n').filter(s => s.trim() !== ''),
-            // aspectosNegativos: formData.aspectosNegativosText.split('\n').filter(s => s.trim() !== ''),
-            // sugestoesMelhorias: formData.sugestoesMelhoriasText.split('\n').filter(s => s.trim() !== ''),
             aspectosPositivos: [],
             aspectosNegativos: [],
             sugestoesMelhorias: [],
             comentarioGeral: formData.comentarioGeral,
-            dificuldadesComunicacao: '',
-            dificuldadesConteudo: '',
-            dificuldadesMetodologicas: '',
-            dificuldadesRecursos: '',
-            outrasDificuldades: '',
+            dificuldadesComunicacao: formData.dificuldades === 'dificuldadesComunicacao' ? 'Sim' : '',
+            dificuldadesConteudo: formData.dificuldades === 'dificuldadesConteudo' ? 'Sim' : '',
+            dificuldadesMetodologicas: formData.dificuldades === 'dificuldadesMetodologicas' ? 'Sim' : '',
+            dificuldadesRecursos: formData.dificuldades === 'dificuldadesRecursos' ? 'Sim' : '',
+            outrasDificuldades: formData.dificuldades === 'outrasDificuldades' ? formData.comentarioGeral : '',
             nivelSatisfacaoGeral: mapSatisfacao(formData.nivelSatisfacaoGeral),
             recomendariaPrograma: formData.recomendariaPrograma,
-            justificativaRecomendacao: formData.justificativaRecomendacao || formData.comentarioGeral
+            justificativaRecomendacao: formData.justificativaRecomendacao || formData.comentarioGeral,
+            periodoAvaliado: formData.periodoAvaliadoText
         };
-
-
-        if (formData.dificuldades === 'outrasDificuldades') {
-            payload.outrasDificuldades = formData.comentarioGeral;
-        } else if (formData.dificuldades) {
-            payload[formData.dificuldades] = 'Sim';
-        }
 
         try {
             await avaliacaoTutoriaService.createAvaliacaoTutoria(payload, token);
             alert(`Avaliação enviada com sucesso!`);
-            navigate('/aluno');
+            navigate('/bolsista');
         } catch (error) {
             alert(error.message);
         }
@@ -169,7 +180,7 @@ function AvaliacaoTutoria() {
                     </Navbar.Brand>
                     <Navbar.Collapse>
                         <Nav className="text-center mx-auto fw-medium">
-                            <Nav.Link onClick={() => navigate('/aluno')} className="mx-2 text-dark">Home</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/bolsista')} className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link onClick={() => navigate('/meus-certificados')} className="mx-2 text-dark">Certificados</Nav.Link>
                             <Nav.Link className="mx-2 text-dark fw-bold">Avaliação Tutoria</Nav.Link>
                         </Nav>
@@ -216,7 +227,7 @@ function AvaliacaoTutoria() {
                         </Row >
 
                         <hr className="my-4" />
-                        <Row className="mb-4">
+                        {/* <Row className="mb-4">
                             <Col md={12}>
                                 <h5 className="text-primary fw-bold mb-3">Quem foi seu Tutor?</h5>
                             </Col>
@@ -244,7 +255,7 @@ function AvaliacaoTutoria() {
                                     * Se o seu tutor não estiver na lista, entre em contato com a coordenação.
                                 </p>
                             </Col>
-                        </Row>
+                        </Row> */}
 
                         <Row className="mb-4">
                             <Col md={6} className="mb-4">
@@ -268,12 +279,21 @@ function AvaliacaoTutoria() {
                         <Row className="mb-4">
                             <Col md={6}>
                                 <Form.Label className="text-primary fw-bold">Período de Tutoria</Form.Label>
-                                <Form.Select id="periodoId" value={formData.periodoId} onChange={handleChange} required>
-                                    {periodos.map(p => (
-                                        <option key={p.id} value={p.id}>{p.semestre}/{p.ano}</option>
-                                    ))}
-                                </Form.Select>
+                                {formData.periodoAvaliadoText ? (
+                                    <Form.Control
+                                        value={formData.periodoAvaliadoText}
+                                        disabled
+                                        className="bg-light fw-bold"
+                                    />
+                                ) : (
+                                    <Form.Select id="periodoId" value={formData.periodoId} onChange={handleChange} required>
+                                        {periodos.map(p => (
+                                            <option key={p.id} value={p.id}>{p.semestre}/{p.ano}</option>
+                                        ))}
+                                    </Form.Select>
+                                )}
                             </Col>
+
 
                             <Col md={6}>
                                 <Form.Label className="text-primary fw-bold">Maior dificuldade encontrada</Form.Label>
@@ -295,20 +315,7 @@ function AvaliacaoTutoria() {
                             </Col>
                         </Row>
 
-                        {/* <Row className="mb-4">
-                            <Col md={4} className="mb-3">
-                                <Form.Label className="text-primary fw-bold">Aspectos Positivos</Form.Label>
-                                <Form.Control as="textarea" id="aspectosPositivosText" rows={3} value={formData.aspectosPositivosText} onChange={handleChange} placeholder="O que funcionou bem?" />
-                            </Col>
-                            <Col md={4} className="mb-3">
-                                <Form.Label className="text-primary fw-bold">Aspectos Negativos</Form.Label>
-                                <Form.Control as="textarea" id="aspectosNegativosText" rows={3} value={formData.aspectosNegativosText} onChange={handleChange} placeholder="O que correu mal?" />
-                            </Col>
-                            <Col md={4} className="mb-3">
-                                <Form.Label className="text-primary fw-bold">Sugestões de Melhoria</Form.Label>
-                                <Form.Control as="textarea" id="sugestoesMelhoriasText" rows={3} value={formData.sugestoesMelhoriasText} onChange={handleChange} placeholder="O que pode melhorar?" />
-                            </Col>
-                        </Row> */}
+
 
                         <Row className="mb-4">
                             <Col>
