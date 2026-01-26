@@ -45,7 +45,7 @@ function ValidarCertificados() {
         try {
             setLoading(true);
             const listaBolsistas = await predefinicoesService.listScholarshipHolders(token);
-            const cursosUnicos = [...new Set(listaBolsistas.map(b => b.curso))];
+            const cursosUnicos = [...new Set(listaBolsistas.map(b => b.bolsista?.curso))];
             const cursosValidos = cursosUnicos.filter(curso => curso);
             setCursos(cursosValidos);
         } catch (err) {
@@ -55,6 +55,7 @@ function ValidarCertificados() {
             setLoading(false);
         }
     };
+
 
     const carregarCertificados = async () => {
         try {
