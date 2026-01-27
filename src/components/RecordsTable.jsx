@@ -31,7 +31,7 @@ function RecordsTable({ user, route }) {
                                 <Button
                                     variant="primary"
                                     className="px-4 py-2 w-100 d-flex justify-content-center align-items-center gap-1"
-                                    onClick={() => navigate(route)} // Link para página de relatório individual, carregando informação do aluno selecionado
+                                    onClick={() => navigate(route, { state: { id: u.id } })}
                                 >
                                     <TbReport size={25} className="text-light" />
                                     <span>Gerar relatório</span>

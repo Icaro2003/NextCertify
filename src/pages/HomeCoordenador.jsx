@@ -51,8 +51,6 @@ function HomeCoordenador() {
                             <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
                             <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
                             <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
                             <Nav.Link onClick={() => navigate('/atribuir-papel')} className="mx-2 text-dark">Atribuir Papel</Nav.Link>
                         </Nav>
 
@@ -163,7 +161,7 @@ function HomeCoordenador() {
                         </Card>
                     </Col>
 
-                    <Col md={4}>
+                    {/* <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
@@ -182,7 +180,7 @@ function HomeCoordenador() {
                                 </Button>
                             </Card.Body>
                         </Card>
-                    </Col>
+                    </Col> */}
 
                     <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
@@ -190,7 +188,7 @@ function HomeCoordenador() {
                                 <div className="mb-3">
                                     <FaFileAlt size={60} className="text-secondary mb-3" />
                                 </div>
-                                <h3 className="text-primary fw-bold mb-3">Relatório de Individual do Tutor</h3>
+                                <h3 className="text-primary fw-bold mb-3">Relatório Individual de Tutores</h3>
                                 <p className="text-muted mb-4">
                                     Gerar relatório individual do tutor da Tutoria Acadêmica
                                 </p>
@@ -210,8 +208,8 @@ function HomeCoordenador() {
                                 <div className="mb-3">
                                     <FaFileAlt size={60} className="text-secondary mb-3" />
                                 </div>
-                                <h3 className="text-primary fw-bold mb-3">Relatório individual Acompanhamento dos alunos</h3>
-                                <p className="text-muted mb-4">Relatório individual de acompanhamento dos alunos</p>
+                                <h3 className="text-primary fw-bold mb-3">Relatório Individual de Alunos</h3>
+                                <p className="text-muted mb-4">Gerar relatório individual de acompanhamento dos alunos</p>
                                 <Button
                                     variant="primary"
                                     className="px-4 py-2 w-100"
@@ -240,7 +238,7 @@ function HomeCoordenador() {
                             </Card.Body>
                         </Card>
                     </Col>
-                    <Col md={4}>
+                    {/* <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>
                                 <div className="mb-3">
@@ -275,7 +273,7 @@ function HomeCoordenador() {
                                 </Button>
                             </Card.Body>
                         </Card>
-                    </Col>
+                    </Col> */}
                     <Col md={4}>
                         <Card className="h-100 border-0 shadow-sm rounded-4 p-4">
                             <Card.Body>

@@ -174,7 +174,11 @@ function ValidarCertificados() {
             <Navbar bg="white" expand={false} expanded={expanded} onToggle={setExpanded} className="shadow-sm py-3">
                 <Container fluid className="px-5">
                     <Navbar.Brand href="#" className="d-flex align-items-center">
-                        <Image src={LogoNextCertify} alt="Logo NextCertify" height="40" />
+                        <Image
+                            src={LogoNextCertify}
+                            alt="Logo NextCertify"
+                            height="40"
+                        />
                     </Navbar.Brand>
 
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -184,12 +188,10 @@ function ValidarCertificados() {
                             <Nav.Link onClick={() => navigate('/coordenador')} className="mx-2 text-dark">Home</Nav.Link>
                             <Nav.Link onClick={() => navigate('/registro-aluno')} className="mx-2 text-dark">Registro Alunos</Nav.Link>
                             <Nav.Link onClick={() => navigate('/registro-tutores')} className="mx-2 text-dark">Registro Tutores</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark fw-bold">Predefinições</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/predefinicoes')} className="mx-2 text-dark">Predefinições</Nav.Link>
                             <Nav.Link onClick={() => navigate('/relatorio-individual-tutor')} className="mx-2 text-dark">Relatório Tutor</Nav.Link>
                             <Nav.Link onClick={() => navigate('/relatorio-individual-aluno')} className="mx-2 text-dark">Relatório Aluno</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark">Validar Certificados</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/relatorio-geral-aluno')} className="mx-2 text-dark">Relatório Geral Alunos</Nav.Link>
-                            <Nav.Link onClick={() => navigate('/relatorio-geral-tutor')} className="mx-2 text-dark">Relatório Geral Tutores</Nav.Link>
+                            <Nav.Link onClick={() => navigate('/validar-certificados')} className="mx-2 text-dark fw-bold">Validar Certificados</Nav.Link>
                             <Nav.Link onClick={() => navigate('/atribuir-papel')} className="mx-2 text-dark">Atribuir Papel</Nav.Link>
                         </Nav>
 
@@ -199,9 +201,7 @@ function ValidarCertificados() {
                                 <FaUserCircle size={32} className="text-primary" />
                                 <span className="fw-bold text-dark">{usuario?.nome}</span>
                             </div>
-                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}>
-                                <FaSignOutAlt size={16} /> Sair
-                            </Button>
+                            <Button variant="outline-danger" size="sm" className="d-flex align-items-center gap-2" onClick={handleLogout}><FaSignOutAlt size={16} /> Sair</Button>
                         </div>
                     </Navbar.Collapse>
                 </Container>
